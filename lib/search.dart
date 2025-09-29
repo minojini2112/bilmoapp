@@ -132,25 +132,94 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text(
-          'Search',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF8B0000), // Dark red
+              Color(0xFF4B0082), // Indigo
+              Color(0xFF1A1A2E), // Dark blue
+            ],
           ),
         ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Navigator.pop(context),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header with BILMO branding
+              _buildHeader(),
+              
+              // Main content
+              Expanded(
+                child: _showSearchResults ? _buildSearchResults() : _buildSearchSuggestions(),
+              ),
+            ],
+          ),
         ),
       ),
-      body: _showSearchResults ? _buildSearchResults() : _buildSearchSuggestions(),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Back button and BILMO Logo
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
+                onPressed: () => Navigator.pop(context),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.orange,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text(
+                  'ai',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Text(
+                'BILMO',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          
+          // Sign In Button
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.red,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: const Text(
+              'SIGN IN',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -163,53 +232,50 @@ class _SearchPageState extends State<SearchPage> {
           // Search Bar
           Container(
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.white, Colors.grey[50]!],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.grey.withOpacity(0.2),
+                color: Colors.white.withOpacity(0.2),
                 width: 1,
               ),
             ),
             child: TextField(
               controller: _searchController,
+              style: const TextStyle(color: Colors.white, fontSize: 16),
               decoration: InputDecoration(
                 hintText: 'Search for products, deals, and more...',
                 hintStyle: const TextStyle(
-                  color: Colors.grey,
+                  color: Colors.white70,
                   fontWeight: FontWeight.w500,
                   fontSize: 16,
                 ),
                 prefixIcon: Container(
                   margin: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.blue[100],
-                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.search, color: Colors.blue, size: 24),
+                  child: const Icon(Icons.search, color: Colors.white, size: 20),
                 ),
                 suffixIcon: IconButton(
-                  icon: const Icon(Icons.clear, color: Colors.grey),
+                  icon: const Icon(Icons.clear, color: Colors.white70),
                   onPressed: () {
                     _searchController.clear();
                   },
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
               onSubmitted: (value) {
                 if (value.isNotEmpty) {
@@ -228,7 +294,7 @@ class _SearchPageState extends State<SearchPage> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 12),
@@ -246,7 +312,7 @@ class _SearchPageState extends State<SearchPage> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 12),
@@ -264,7 +330,7 @@ class _SearchPageState extends State<SearchPage> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 12),
@@ -290,36 +356,33 @@ class _SearchPageState extends State<SearchPage> {
         Container(
           margin: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.white, Colors.grey[50]!],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: Colors.grey.withOpacity(0.2),
+              color: Colors.white.withOpacity(0.2),
               width: 1,
             ),
           ),
           child: TextField(
             controller: _searchController,
+            style: const TextStyle(color: Colors.white, fontSize: 16),
             decoration: InputDecoration(
               hintText: 'Search for products, deals, and more...',
               hintStyle: const TextStyle(
-                color: Colors.grey,
+                color: Colors.white70,
                 fontWeight: FontWeight.w500,
                 fontSize: 16,
               ),
               prefixIcon: Container(
                 margin: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.blue[100],
-                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.search, color: Colors.blue, size: 24),
+                child: const Icon(Icons.search, color: Colors.white, size: 20),
               ),
               suffixIcon: IconButton(
-                icon: const Icon(Icons.clear, color: Colors.grey),
+                icon: const Icon(Icons.clear, color: Colors.white70),
                 onPressed: () {
                   _searchController.clear();
                   setState(() {
@@ -329,18 +392,18 @@ class _SearchPageState extends State<SearchPage> {
                 },
               ),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
             onSubmitted: (value) {
               if (value.isNotEmpty) {
@@ -356,9 +419,9 @@ class _SearchPageState extends State<SearchPage> {
           child: Text(
             'Search Results for "$_currentSearchQuery"',
             style: const TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: Colors.white,
             ),
           ),
         ),
@@ -375,14 +438,14 @@ class _SearchPageState extends State<SearchPage> {
                       const Icon(
                         Icons.search_off,
                         size: 64,
-                        color: Colors.grey,
+                        color: Colors.white70,
                       ),
                       const SizedBox(height: 16),
                       Text(
                         'No results found for "$_currentSearchQuery"',
                         style: const TextStyle(
                           fontSize: 16,
-                          color: Colors.grey,
+                          color: Colors.white70,
                         ),
                       ),
                     ],
@@ -412,20 +475,12 @@ class _SearchPageState extends State<SearchPage> {
   Widget _buildSearchResultCard(SearchResult result) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.grey.withOpacity(0.3),
+          color: Colors.white.withOpacity(0.2),
           width: 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -435,7 +490,7 @@ class _SearchPageState extends State<SearchPage> {
             height: 80,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color: Colors.white.withOpacity(0.1),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             ),
             child: Center(
@@ -462,7 +517,7 @@ class _SearchPageState extends State<SearchPage> {
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: Colors.black87,
+                          color: Colors.white,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -472,7 +527,7 @@ class _SearchPageState extends State<SearchPage> {
                         result.category,
                         style: const TextStyle(
                           fontSize: 9,
-                          color: Colors.grey,
+                          color: Colors.white70,
                         ),
                       ),
                     ],
@@ -504,10 +559,10 @@ class _SearchPageState extends State<SearchPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.white.withOpacity(0.1),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: Colors.grey.withOpacity(0.3),
+            color: Colors.white.withOpacity(0.2),
             width: 1,
           ),
         ),
@@ -515,7 +570,7 @@ class _SearchPageState extends State<SearchPage> {
           text,
           style: const TextStyle(
             fontSize: 14,
-            color: Colors.black87,
+            color: Colors.white,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -527,14 +582,10 @@ class _SearchPageState extends State<SearchPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.white, Colors.grey[50]!],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white.withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.grey.withOpacity(0.2),
+          color: Colors.white.withOpacity(0.2),
           width: 1,
         ),
       ),
@@ -543,7 +594,7 @@ class _SearchPageState extends State<SearchPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.blue[50],
+              color: Colors.red.withOpacity(0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
@@ -561,7 +612,7 @@ class _SearchPageState extends State<SearchPage> {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -569,7 +620,7 @@ class _SearchPageState extends State<SearchPage> {
                   subtitle,
                   style: const TextStyle(
                     fontSize: 14,
-                    color: Colors.grey,
+                    color: Colors.white70,
                   ),
                 ),
               ],
@@ -577,7 +628,7 @@ class _SearchPageState extends State<SearchPage> {
           ),
           const Icon(
             Icons.arrow_forward_ios,
-            color: Colors.grey,
+            color: Colors.white70,
             size: 16,
           ),
         ],
