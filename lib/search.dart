@@ -38,60 +38,60 @@ class _SearchPageState extends State<SearchPage> {
   // Sample search results data
   final Map<String, List<SearchResult>> _searchResults = {
     'iphone': [
-      SearchResult(title: 'iPhone 15 Pro Max 256GB', price: '₹1,19,900', originalPrice: '₹1,39,900', image: '📱', category: 'Electronics'),
-      SearchResult(title: 'iPhone 15 Pro 128GB', price: '₹1,04,900', originalPrice: '₹1,19,900', image: '📱', category: 'Electronics'),
-      SearchResult(title: 'iPhone 14 Pro Max', price: '₹89,900', originalPrice: '₹1,09,900', image: '📱', category: 'Electronics'),
-      SearchResult(title: 'iPhone 13 Pro', price: '₹69,900', originalPrice: '₹89,900', image: '📱', category: 'Electronics'),
-      SearchResult(title: 'iPhone 12', price: '₹49,900', originalPrice: '₹69,900', image: '📱', category: 'Electronics'),
-      SearchResult(title: 'iPhone SE 3rd Gen', price: '₹39,900', originalPrice: '₹49,900', image: '📱', category: 'Electronics'),
+      SearchResult(title: 'iPhone 15 Pro Max 256GB', price: '₹1,19,900', originalPrice: '₹1,39,900', image: '📱', category: 'Electronics', platform: 'Amazon', saleStatus: 'Flash Sale', discountPercentage: 14, isOnSale: true),
+      SearchResult(title: 'iPhone 15 Pro 128GB', price: '₹1,04,900', originalPrice: '₹1,19,900', image: '📱', category: 'Electronics', platform: 'Flipkart', saleStatus: 'Best Deal', discountPercentage: 13, isOnSale: true),
+      SearchResult(title: 'iPhone 14 Pro Max', price: '₹89,900', originalPrice: '₹1,09,900', image: '📱', category: 'Electronics', platform: 'Reliance Digital', saleStatus: 'Clearance', discountPercentage: 18, isOnSale: true),
+      SearchResult(title: 'iPhone 13 Pro', price: '₹69,900', originalPrice: '₹89,900', image: '📱', category: 'Electronics', platform: 'Croma', saleStatus: 'Limited Time', discountPercentage: 22, isOnSale: true),
+      SearchResult(title: 'iPhone 12', price: '₹49,900', originalPrice: '₹69,900', image: '📱', category: 'Electronics', platform: 'Vijay Sales', saleStatus: 'End of Season', discountPercentage: 29, isOnSale: true),
+      SearchResult(title: 'iPhone SE 3rd Gen', price: '₹39,900', originalPrice: '₹49,900', image: '📱', category: 'Electronics', platform: 'Amazon', saleStatus: 'Daily Deal', discountPercentage: 20, isOnSale: true),
     ],
     'samsung': [
-      SearchResult(title: 'Samsung Galaxy S24 Ultra', price: '₹1,24,999', originalPrice: '₹1,34,999', image: '📱', category: 'Electronics'),
-      SearchResult(title: 'Samsung Galaxy S24', price: '₹79,999', originalPrice: '₹89,999', image: '📱', category: 'Electronics'),
-      SearchResult(title: 'Samsung Galaxy Z Fold 5', price: '₹1,64,999', originalPrice: '₹1,74,999', image: '📱', category: 'Electronics'),
-      SearchResult(title: 'Samsung Galaxy A54', price: '₹34,999', originalPrice: '₹39,999', image: '📱', category: 'Electronics'),
-      SearchResult(title: 'Samsung Galaxy Note 20', price: '₹59,999', originalPrice: '₹79,999', image: '📱', category: 'Electronics'),
-      SearchResult(title: 'Samsung Galaxy Watch 6', price: '₹24,999', originalPrice: '₹29,999', image: '⌚', category: 'Electronics'),
+      SearchResult(title: 'Samsung Galaxy S24 Ultra', price: '₹1,24,999', originalPrice: '₹1,34,999', image: '📱', category: 'Electronics', platform: 'Flipkart', saleStatus: 'Mega Sale', discountPercentage: 7, isOnSale: true),
+      SearchResult(title: 'Samsung Galaxy S24', price: '₹79,999', originalPrice: '₹89,999', image: '📱', category: 'Electronics', platform: 'Amazon', saleStatus: 'Prime Deal', discountPercentage: 11, isOnSale: true),
+      SearchResult(title: 'Samsung Galaxy Z Fold 5', price: '₹1,64,999', originalPrice: '₹1,74,999', image: '📱', category: 'Electronics', platform: 'Reliance Digital', saleStatus: 'Exclusive', discountPercentage: 6, isOnSale: true),
+      SearchResult(title: 'Samsung Galaxy A54', price: '₹34,999', originalPrice: '₹39,999', image: '📱', category: 'Electronics', platform: 'Croma', saleStatus: 'Weekend Sale', discountPercentage: 13, isOnSale: true),
+      SearchResult(title: 'Samsung Galaxy Note 20', price: '₹59,999', originalPrice: '₹79,999', image: '📱', category: 'Electronics', platform: 'Vijay Sales', saleStatus: 'Clearance', discountPercentage: 25, isOnSale: true),
+      SearchResult(title: 'Samsung Galaxy Watch 6', price: '₹24,999', originalPrice: '₹29,999', image: '⌚', category: 'Electronics', platform: 'Amazon', saleStatus: 'Best Price', discountPercentage: 17, isOnSale: true),
     ],
     'flight': [
-      SearchResult(title: 'Mumbai to Delhi Flight', price: '₹4,500', originalPrice: '₹6,500', image: '✈️', category: 'Travel'),
-      SearchResult(title: 'Bangalore to Goa Flight', price: '₹3,200', originalPrice: '₹4,800', image: '✈️', category: 'Travel'),
-      SearchResult(title: 'Chennai to Mumbai Flight', price: '₹5,800', originalPrice: '₹7,200', image: '✈️', category: 'Travel'),
-      SearchResult(title: 'Delhi to Bangalore Flight', price: '₹6,200', originalPrice: '₹8,200', image: '✈️', category: 'Travel'),
-      SearchResult(title: 'Mumbai to Goa Flight', price: '₹2,800', originalPrice: '₹4,200', image: '✈️', category: 'Travel'),
-      SearchResult(title: 'Kolkata to Delhi Flight', price: '₹5,500', originalPrice: '₹7,500', image: '✈️', category: 'Travel'),
+      SearchResult(title: 'Mumbai to Delhi Flight', price: '₹4,500', originalPrice: '₹6,500', image: '✈️', category: 'Travel', platform: 'MakeMyTrip', saleStatus: 'Early Bird', discountPercentage: 31, isOnSale: true),
+      SearchResult(title: 'Bangalore to Goa Flight', price: '₹3,200', originalPrice: '₹4,800', image: '✈️', category: 'Travel', platform: 'Yatra', saleStatus: 'Weekend Special', discountPercentage: 33, isOnSale: true),
+      SearchResult(title: 'Chennai to Mumbai Flight', price: '₹5,800', originalPrice: '₹7,200', image: '✈️', category: 'Travel', platform: 'Goibibo', saleStatus: 'Flash Sale', discountPercentage: 19, isOnSale: true),
+      SearchResult(title: 'Delhi to Bangalore Flight', price: '₹6,200', originalPrice: '₹8,200', image: '✈️', category: 'Travel', platform: 'Cleartrip', saleStatus: 'Best Deal', discountPercentage: 24, isOnSale: true),
+      SearchResult(title: 'Mumbai to Goa Flight', price: '₹2,800', originalPrice: '₹4,200', image: '✈️', category: 'Travel', platform: 'EaseMyTrip', saleStatus: 'Limited Time', discountPercentage: 33, isOnSale: true),
+      SearchResult(title: 'Kolkata to Delhi Flight', price: '₹5,500', originalPrice: '₹7,500', image: '✈️', category: 'Travel', platform: 'MakeMyTrip', saleStatus: 'Prime Deal', discountPercentage: 27, isOnSale: true),
     ],
     'hotel': [
-      SearchResult(title: 'Taj Palace Hotel - Mumbai', price: '₹12,000/night', originalPrice: '₹15,000/night', image: '🏨', category: 'Hotels'),
-      SearchResult(title: 'Oberoi Hotel - Delhi', price: '₹15,000/night', originalPrice: '₹18,000/night', image: '🏨', category: 'Hotels'),
-      SearchResult(title: 'ITC Maratha - Mumbai', price: '₹8,500/night', originalPrice: '₹11,000/night', image: '🏨', category: 'Hotels'),
-      SearchResult(title: 'Leela Palace - Bangalore', price: '₹9,500/night', originalPrice: '₹12,000/night', image: '🏨', category: 'Hotels'),
-      SearchResult(title: 'JW Marriott - Delhi', price: '₹11,000/night', originalPrice: '₹14,000/night', image: '🏨', category: 'Hotels'),
-      SearchResult(title: 'Hyatt Regency - Mumbai', price: '₹7,500/night', originalPrice: '₹10,000/night', image: '🏨', category: 'Hotels'),
+      SearchResult(title: 'Taj Palace Hotel - Mumbai', price: '₹12,000/night', originalPrice: '₹15,000/night', image: '🏨', category: 'Hotels', platform: 'Booking.com', saleStatus: 'Luxury Deal', discountPercentage: 20, isOnSale: true),
+      SearchResult(title: 'Oberoi Hotel - Delhi', price: '₹15,000/night', originalPrice: '₹18,000/night', image: '🏨', category: 'Hotels', platform: 'Agoda', saleStatus: 'Premium Offer', discountPercentage: 17, isOnSale: true),
+      SearchResult(title: 'ITC Maratha - Mumbai', price: '₹8,500/night', originalPrice: '₹11,000/night', image: '🏨', category: 'Hotels', platform: 'MakeMyTrip', saleStatus: 'Weekend Special', discountPercentage: 23, isOnSale: true),
+      SearchResult(title: 'Leela Palace - Bangalore', price: '₹9,500/night', originalPrice: '₹12,000/night', image: '🏨', category: 'Hotels', platform: 'Yatra', saleStatus: 'Best Price', discountPercentage: 21, isOnSale: true),
+      SearchResult(title: 'JW Marriott - Delhi', price: '₹11,000/night', originalPrice: '₹14,000/night', image: '🏨', category: 'Hotels', platform: 'Goibibo', saleStatus: 'Flash Sale', discountPercentage: 21, isOnSale: true),
+      SearchResult(title: 'Hyatt Regency - Mumbai', price: '₹7,500/night', originalPrice: '₹10,000/night', image: '🏨', category: 'Hotels', platform: 'Cleartrip', saleStatus: 'Limited Time', discountPercentage: 25, isOnSale: true),
     ],
     'dress': [
-      SearchResult(title: 'Designer Saree Collection', price: '₹8,999', originalPrice: '₹12,999', image: '👗', category: 'Fashion'),
-      SearchResult(title: 'Cocktail Dress - Zara', price: '₹2,999', originalPrice: '₹4,999', image: '👗', category: 'Fashion'),
-      SearchResult(title: 'Wedding Lehenga', price: '₹25,000', originalPrice: '₹35,000', image: '👗', category: 'Fashion'),
-      SearchResult(title: 'Party Wear Gown', price: '₹4,500', originalPrice: '₹6,500', image: '👗', category: 'Fashion'),
-      SearchResult(title: 'Casual Kurti Set', price: '₹1,299', originalPrice: '₹2,299', image: '👗', category: 'Fashion'),
-      SearchResult(title: 'Formal Business Suit', price: '₹5,999', originalPrice: '₹8,999', image: '👔', category: 'Fashion'),
+      SearchResult(title: 'Designer Saree Collection', price: '₹8,999', originalPrice: '₹12,999', image: '👗', category: 'Fashion', platform: 'Myntra', saleStatus: 'Festival Sale', discountPercentage: 31, isOnSale: true),
+      SearchResult(title: 'Cocktail Dress - Zara', price: '₹2,999', originalPrice: '₹4,999', image: '👗', category: 'Fashion', platform: 'Ajio', saleStatus: 'End of Season', discountPercentage: 40, isOnSale: true),
+      SearchResult(title: 'Wedding Lehenga', price: '₹25,000', originalPrice: '₹35,000', image: '👗', category: 'Fashion', platform: 'Flipkart', saleStatus: 'Wedding Special', discountPercentage: 29, isOnSale: true),
+      SearchResult(title: 'Party Wear Gown', price: '₹4,500', originalPrice: '₹6,500', image: '👗', category: 'Fashion', platform: 'Amazon', saleStatus: 'Party Collection', discountPercentage: 31, isOnSale: true),
+      SearchResult(title: 'Casual Kurti Set', price: '₹1,299', originalPrice: '₹2,299', image: '👗', category: 'Fashion', platform: 'Voonik', saleStatus: 'Daily Deal', discountPercentage: 43, isOnSale: true),
+      SearchResult(title: 'Formal Business Suit', price: '₹5,999', originalPrice: '₹8,999', image: '👔', category: 'Fashion', platform: 'Lifestyle', saleStatus: 'Corporate Sale', discountPercentage: 33, isOnSale: true),
     ],
     'laptop': [
-      SearchResult(title: 'MacBook Air M2 13-inch', price: '₹89,900', originalPrice: '₹1,09,900', image: '💻', category: 'Electronics'),
-      SearchResult(title: 'MacBook Pro M3 14-inch', price: '₹1,49,900', originalPrice: '₹1,69,900', image: '💻', category: 'Electronics'),
-      SearchResult(title: 'Dell XPS 13', price: '₹89,999', originalPrice: '₹1,09,999', image: '💻', category: 'Electronics'),
-      SearchResult(title: 'HP Pavilion 15', price: '₹54,999', originalPrice: '₹69,999', image: '💻', category: 'Electronics'),
-      SearchResult(title: 'Lenovo ThinkPad X1', price: '₹1,19,999', originalPrice: '₹1,39,999', image: '💻', category: 'Electronics'),
-      SearchResult(title: 'ASUS ROG Gaming Laptop', price: '₹79,999', originalPrice: '₹99,999', image: '💻', category: 'Electronics'),
+      SearchResult(title: 'MacBook Air M2 13-inch', price: '₹89,900', originalPrice: '₹1,09,900', image: '💻', category: 'Electronics', platform: 'Apple Store', saleStatus: 'Student Offer', discountPercentage: 18, isOnSale: true),
+      SearchResult(title: 'MacBook Pro M3 14-inch', price: '₹1,49,900', originalPrice: '₹1,69,900', image: '💻', category: 'Electronics', platform: 'Amazon', saleStatus: 'Prime Deal', discountPercentage: 12, isOnSale: true),
+      SearchResult(title: 'Dell XPS 13', price: '₹89,999', originalPrice: '₹1,09,999', image: '💻', category: 'Electronics', platform: 'Flipkart', saleStatus: 'Tech Sale', discountPercentage: 18, isOnSale: true),
+      SearchResult(title: 'HP Pavilion 15', price: '₹54,999', originalPrice: '₹69,999', image: '💻', category: 'Electronics', platform: 'Croma', saleStatus: 'Weekend Special', discountPercentage: 21, isOnSale: true),
+      SearchResult(title: 'Lenovo ThinkPad X1', price: '₹1,19,999', originalPrice: '₹1,39,999', image: '💻', category: 'Electronics', platform: 'Reliance Digital', saleStatus: 'Business Deal', discountPercentage: 14, isOnSale: true),
+      SearchResult(title: 'ASUS ROG Gaming Laptop', price: '₹79,999', originalPrice: '₹99,999', image: '💻', category: 'Electronics', platform: 'Vijay Sales', saleStatus: 'Gaming Special', discountPercentage: 20, isOnSale: true),
     ],
     'headphone': [
-      SearchResult(title: 'Sony WH-1000XM5', price: '₹24,990', originalPrice: '₹29,990', image: '🎧', category: 'Electronics'),
-      SearchResult(title: 'AirPods Pro 2nd Gen', price: '₹24,900', originalPrice: '₹29,900', image: '🎧', category: 'Electronics'),
-      SearchResult(title: 'Bose QuietComfort 45', price: '₹29,900', originalPrice: '₹34,900', image: '🎧', category: 'Electronics'),
-      SearchResult(title: 'Sennheiser HD 660S', price: '₹34,999', originalPrice: '₹39,999', image: '🎧', category: 'Electronics'),
-      SearchResult(title: 'JBL Live Pro 2', price: '₹12,999', originalPrice: '₹16,999', image: '🎧', category: 'Electronics'),
-      SearchResult(title: 'Beats Studio3 Wireless', price: '₹19,999', originalPrice: '₹24,999', image: '🎧', category: 'Electronics'),
+      SearchResult(title: 'Sony WH-1000XM5', price: '₹24,990', originalPrice: '₹29,990', image: '🎧', category: 'Electronics', platform: 'Amazon', saleStatus: 'Audio Sale', discountPercentage: 17, isOnSale: true),
+      SearchResult(title: 'AirPods Pro 2nd Gen', price: '₹24,900', originalPrice: '₹29,900', image: '🎧', category: 'Electronics', platform: 'Apple Store', saleStatus: 'Apple Deal', discountPercentage: 17, isOnSale: true),
+      SearchResult(title: 'Bose QuietComfort 45', price: '₹29,900', originalPrice: '₹34,900', image: '🎧', category: 'Electronics', platform: 'Flipkart', saleStatus: 'Premium Audio', discountPercentage: 14, isOnSale: true),
+      SearchResult(title: 'Sennheiser HD 660S', price: '₹34,999', originalPrice: '₹39,999', image: '🎧', category: 'Electronics', platform: 'Croma', saleStatus: 'Pro Audio', discountPercentage: 13, isOnSale: true),
+      SearchResult(title: 'JBL Live Pro 2', price: '₹12,999', originalPrice: '₹16,999', image: '🎧', category: 'Electronics', platform: 'Reliance Digital', saleStatus: 'Music Special', discountPercentage: 24, isOnSale: true),
+      SearchResult(title: 'Beats Studio3 Wireless', price: '₹19,999', originalPrice: '₹24,999', image: '🎧', category: 'Electronics', platform: 'Vijay Sales', saleStatus: 'Beats Deal', discountPercentage: 20, isOnSale: true),
     ],
   };
 
@@ -476,30 +476,84 @@ class _SearchPageState extends State<SearchPage> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: Colors.white.withOpacity(0.2),
           width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image container - matches the smaller rectangle in wireframe
+          // Header with platform and sale status
           Container(
-            height: 80,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.red.withOpacity(0.2),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Platform badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    result.platform,
+                    style: const TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                // Sale status badge
+                if (result.isOnSale)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.8),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      result.saleStatus,
+                      style: const TextStyle(
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          
+          // Image container
+          Container(
+            height: 70,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              color: Colors.white.withOpacity(0.05),
             ),
             child: Center(
               child: Text(
                 result.image,
-                style: const TextStyle(fontSize: 32),
+                style: const TextStyle(fontSize: 28),
               ),
             ),
           ),
+          
           // Content area
           Expanded(
             child: Padding(
@@ -518,11 +572,12 @@ class _SearchPageState extends State<SearchPage> {
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
+                          height: 1.2,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 4),
                       Text(
                         result.category,
                         style: const TextStyle(
@@ -532,14 +587,53 @@ class _SearchPageState extends State<SearchPage> {
                       ),
                     ],
                   ),
-                  // Price
-                  Text(
-                    result.price,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                    ),
+                  
+                  // Price section
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Current price
+                      Text(
+                        result.price,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                      ),
+                      // Original price and discount
+                      if (result.isOnSale && result.originalPrice.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Text(
+                              result.originalPrice,
+                              style: const TextStyle(
+                                fontSize: 9,
+                                color: Colors.white60,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withOpacity(0.8),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                '${result.discountPercentage}% OFF',
+                                style: const TextStyle(
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ),
@@ -664,7 +758,7 @@ class _SearchPageState extends State<SearchPage> {
     // If no matches found, return some default results
     if (results.isEmpty) {
       return [
-        SearchResult(title: 'No results found', price: '', originalPrice: '', image: '❌', category: ''),
+        SearchResult(title: 'No results found', price: '', originalPrice: '', image: '❌', category: '', platform: '', saleStatus: '', discountPercentage: 0, isOnSale: false),
       ];
     }
     
@@ -731,6 +825,10 @@ class SearchResult {
   final String originalPrice;
   final String image;
   final String category;
+  final String platform;
+  final String saleStatus;
+  final int discountPercentage;
+  final bool isOnSale;
 
   SearchResult({
     required this.title,
@@ -738,5 +836,9 @@ class SearchResult {
     required this.originalPrice,
     required this.image,
     required this.category,
+    required this.platform,
+    required this.saleStatus,
+    required this.discountPercentage,
+    required this.isOnSale,
   });
 }

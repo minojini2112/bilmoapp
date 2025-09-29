@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:math';
 import 'search.dart';
 import 'pages.dart';
 import 'section_pages.dart';
-
+import 'book_flights_page.dart';
+import 'hotel_bookings_page.dart';
 
 void main() {
   runApp(const MainApp());
@@ -42,6 +44,73 @@ class MainApp extends StatelessWidget {
   }
 }
 
+class SparkleWidget extends StatelessWidget {
+  final double size;
+  final Color color;
+  final double opacity;
+  final double angle;
+
+  const SparkleWidget({
+    super.key,
+    required this.size,
+    required this.color,
+    required this.opacity,
+    required this.angle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: angle,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: color.withOpacity(opacity),
+          shape: BoxShape.circle,
+        ),
+        child: CustomPaint(
+          painter: SparklePainter(color: color, opacity: opacity),
+        ),
+      ),
+    );
+  }
+}
+
+class SparklePainter extends CustomPainter {
+  final Color color;
+  final double opacity;
+
+  SparklePainter({required this.color, required this.opacity});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color.withOpacity(opacity)
+      ..style = PaintingStyle.fill;
+
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+
+    // Draw sparkle shape (4-pointed star)
+    final path = Path();
+    path.moveTo(center.dx, center.dy - radius);
+    path.lineTo(center.dx + radius * 0.3, center.dy - radius * 0.3);
+    path.lineTo(center.dx + radius, center.dy);
+    path.lineTo(center.dx + radius * 0.3, center.dy + radius * 0.3);
+    path.lineTo(center.dx, center.dy + radius);
+    path.lineTo(center.dx - radius * 0.3, center.dy + radius * 0.3);
+    path.lineTo(center.dx - radius, center.dy);
+    path.lineTo(center.dx - radius * 0.3, center.dy - radius * 0.3);
+    path.close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -76,7 +145,6 @@ class _HomePageState extends State<HomePage> {
             children: [
               // Mobile Header with Hamburger Menu
               _buildMobileHeader(),
-              
               // Main content
               Expanded(
                 child: _selectedIndex == 0 ? _buildHomeContent() : _buildDashboardContent(),
@@ -130,7 +198,6 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          
           // Sign In Button
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -202,7 +269,6 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-              
               // Navigation Items
               Expanded(
                 child: ListView(
@@ -242,7 +308,6 @@ class _HomePageState extends State<HomePage> {
         setState(() {
           _selectedIndex = index;
         });
-        
         // Navigate to specific pages
         if (index == -1) {
           Navigator.push(
@@ -289,38 +354,55 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       child: Column(
         children: [
-          // Main Hero Section - Enhanced
+          // Main Hero Section - Magically Smart Text with Static Sparkles
           Container(
             padding: const EdgeInsets.symmetric(vertical: 20),
-            child: const Text(
-              'Magically\nSmart',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 42,
-                fontWeight: FontWeight.w200,
-                fontStyle: FontStyle.italic,
-                height: 1.1,
-                letterSpacing: 2.0,
-                shadows: [
-                  Shadow(
-                    color: Colors.white24,
-                    blurRadius: 10,
-                    offset: Offset(0, 2),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Main text - Static white text
+                const Text(
+                  'Magically\nSmart',
+                  style: TextStyle(
+                    fontFamily: 'Back to Black Demo',
+                    color: Colors.white,
+                    fontSize: 48,
+                    fontWeight: FontWeight.w300,
+                    fontStyle: FontStyle.italic,
+                    height: 1.1,
+                    letterSpacing: 3.0,
+                    shadows: [
+                      Shadow(
+                        color: Colors.white24,
+                        blurRadius: 15,
+                        offset: Offset(0, 3),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              textAlign: TextAlign.center,
+                  textAlign: TextAlign.center,
+                ),
+                // Static white sparkles around the text
+                ...List.generate(6, (index) {
+                  final random = Random(index);
+                  return Positioned(
+                    left: 40 + (random.nextDouble() * 220),
+                    top: 20 + (random.nextDouble() * 120),
+                    child: SparkleWidget(
+                      size: 6 + (random.nextDouble() * 8),
+                      color: Colors.white,
+                      opacity: 0.7 + (random.nextDouble() * 0.3),
+                      angle: random.nextDouble() * 2 * pi,
+                    ),
+                  );
+                }),
+              ],
             ),
           ),
-          
           const SizedBox(height: 30),
-          
           // Search Section
           _buildSearchSection(),
-          
           const SizedBox(height: 30),
-          
-          // Main Content Grid - 2x2 layout (Bigger)
+          // Main Content Grid - 2x2 layout (Wider)
           Row(
             children: [
               Expanded(
@@ -332,7 +414,7 @@ class _HomePageState extends State<HomePage> {
                         MaterialPageRoute(builder: (context) => const BestDealsPage()),
                       );
                     }),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildSectionCard('AI Report', Icons.analytics, () {
                       Navigator.push(
                         context,
@@ -342,7 +424,7 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   children: [
@@ -352,7 +434,7 @@ class _HomePageState extends State<HomePage> {
                         MaterialPageRoute(builder: (context) => const CartPage()),
                       );
                     }),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildSectionCard('Wishlist', Icons.favorite, () {
                       Navigator.push(
                         context,
@@ -364,9 +446,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          
           const SizedBox(height: 30),
-          
           // Explore Section
           const Text(
             'Explore',
@@ -377,14 +457,19 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 16),
-          
           // Explore Options - Sequential Layout
           _buildExploreOption('Book Flights', Icons.flight, '✈️', () {
-            // Navigate to flights page or show flights deals
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const BookFlightsPage()),
+            );
           }),
           const SizedBox(height: 12),
           _buildExploreOption('Hotel Bookings', Icons.hotel, '🏨', () {
-            // Navigate to hotels page or show hotel deals
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const HotelBookingsPage()),
+            );
           }),
           const SizedBox(height: 12),
           _buildExploreOption('Fashion & Style', Icons.checkroom, '👗', () {
@@ -560,7 +645,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
   Widget _buildDashboardContent() {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -582,9 +666,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          
           const SizedBox(height: 16),
-          
           // Search Result Panel
           Container(
             width: double.infinity,
@@ -608,9 +690,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          
           const SizedBox(height: 16),
-          
           // Bottom Row
           Row(
             children: [
@@ -681,5 +761,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
 }
