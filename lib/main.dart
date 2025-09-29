@@ -6,6 +6,8 @@ import 'pages.dart';
 import 'section_pages.dart';
 import 'book_flights_page.dart';
 import 'hotel_bookings_page.dart';
+import 'lens/camera_screen.dart';
+import 'package:camera/camera.dart';
 
 void main() {
   runApp(const MainApp());
@@ -120,8 +122,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
-  int _selectedIndex = 0;
-  bool _isDrawerOpen = false;
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +147,7 @@ class _HomePageState extends State<HomePage> {
               _buildMobileHeader(),
               // Main content
               Expanded(
-                child: _selectedIndex == 0 ? _buildHomeContent() : _buildDashboardContent(),
+                child: _buildHomeContent(),
               ),
             ],
           ),
@@ -305,9 +305,6 @@ class _HomePageState extends State<HomePage> {
       ),
       onTap: () {
         Navigator.pop(context); // Close drawer
-        setState(() {
-          _selectedIndex = index;
-        });
         // Navigate to specific pages
         if (index == -1) {
           Navigator.push(
@@ -401,6 +398,9 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 30),
           // Search Section
           _buildSearchSection(),
+          const SizedBox(height: 20),
+          // Bilmo Lens Card
+          _buildBilmoLensCard(),
           const SizedBox(height: 30),
           // Main Content Grid - 2x2 layout (Wider)
           Row(
@@ -458,10 +458,10 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 16),
           // Explore Options - Sequential Layout
-          _buildExploreOption('Book Flights', Icons.flight, '✈️', () {
+          _buildExploreOption('Book Tickets', Icons.confirmation_number, '🎫', () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const BookFlightsPage()),
+              MaterialPageRoute(builder: (context) => const BookTicketsPage()),
             );
           }),
           const SizedBox(height: 12),
@@ -645,120 +645,105 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildDashboardContent() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          // Search Input Fields
-          Row(
-            children: [
-              Expanded(
-                child: _buildSearchInput('Search Input 1'),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildSearchInput('Search Input 2'),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildSearchInput('Search Input 3'),
-              ),
-            ],
+  Widget _buildBilmoLensCard() {
+    return GestureDetector(
+      onTap: () => _openCameraScreen(),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.2),
+            width: 1,
           ),
-          const SizedBox(height: 16),
-          // Search Result Panel
-          Container(
-            width: double.infinity,
-            height: 120,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.2),
-                width: 1,
-              ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
-            child: const Center(
-              child: Text(
-                'Search Result',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Bottom Row
-          Row(
-            children: [
-              Expanded(
-                child: _buildDashboardCard('Ai Report'),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildDashboardCard(''),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildDashboardCard('CART\nWatchlist'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchInput(String hint) {
-    return Container(
-      height: 40,
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.2),
-          width: 1,
+          ],
         ),
-      ),
-      child: TextField(
-        style: const TextStyle(color: Colors.white, fontSize: 12),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: const TextStyle(color: Colors.white70, fontSize: 12),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.camera_alt,
+                color: Colors.white,
+                size: 32,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Bilmo Lens',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Capture any product and find the best deals',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.white70,
+              size: 20,
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildDashboardCard(String text) {
-    return Container(
-      height: 80,
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.2),
-          width: 1,
+  Future<void> _openCameraScreen() async {
+    try {
+      // Get available cameras
+      final cameras = await availableCameras();
+      
+      if (cameras.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No cameras found on this device'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Navigate to camera screen
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CameraScreen(camera: cameras.first),
         ),
-      ),
-      child: Center(
-        child: text.isEmpty
-            ? null
-            : Text(
-                text,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-      ),
-    );
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error opening camera: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
+
 }

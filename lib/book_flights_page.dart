@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
 
-class BookFlightsPage extends StatefulWidget {
-  const BookFlightsPage({super.key});
+class BookTicketsPage extends StatefulWidget {
+  const BookTicketsPage({super.key});
 
   @override
-  State<BookFlightsPage> createState() => _BookFlightsPageState();
+  State<BookTicketsPage> createState() => _BookTicketsPageState();
 }
 
-class _BookFlightsPageState extends State<BookFlightsPage> {
-  final TextEditingController _fromController = TextEditingController(text: 'New York');
-  final TextEditingController _toController = TextEditingController(text: 'London');
+class _BookTicketsPageState extends State<BookTicketsPage> {
+  final TextEditingController _fromController = TextEditingController(text: 'Mumbai');
+  final TextEditingController _toController = TextEditingController(text: 'Delhi');
   final TextEditingController _departureController = TextEditingController(text: '2024-02-15');
   final TextEditingController _returnController = TextEditingController(text: '2024-02-22');
   final TextEditingController _passengersController = TextEditingController(text: '1');
   
+  String _selectedTransportType = 'Flights';
   String _selectedClass = 'Economy';
   String _selectedTripType = 'Round Trip';
   
+  final List<String> _transportTypes = ['Flights', 'Trains', 'Buses'];
   final List<String> _classes = ['Economy', 'Business', 'First Class'];
   final List<String> _tripTypes = ['One Way', 'Round Trip', 'Multi City'];
 
@@ -74,13 +76,13 @@ class _BookFlightsPageState extends State<BookFlightsPage> {
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pushReplacementNamed(context, '/'),
           ),
           const SizedBox(width: 10),
-          const Icon(Icons.flight, color: Colors.white, size: 28),
+          const Icon(Icons.confirmation_number, color: Colors.white, size: 28),
           const SizedBox(width: 10),
           const Text(
-            'Book Flights',
+            'Book Tickets',
             style: TextStyle(
               color: Colors.white,
               fontSize: 24,
@@ -104,7 +106,7 @@ class _BookFlightsPageState extends State<BookFlightsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Search Flights',
+            'Search Tickets',
             style: TextStyle(
               color: Colors.white,
               fontSize: 20,
@@ -112,6 +114,11 @@ class _BookFlightsPageState extends State<BookFlightsPage> {
             ),
           ),
           const SizedBox(height: 20),
+          // Transport Type
+          _buildDropdown('Transport Type', _selectedTransportType, _transportTypes, (value) {
+            setState(() => _selectedTransportType = value!);
+          }),
+          const SizedBox(height: 16),
           // Trip Type
           _buildDropdown('Trip Type', _selectedTripType, _tripTypes, (value) {
             setState(() => _selectedTripType = value!);
@@ -152,13 +159,13 @@ class _BookFlightsPageState extends State<BookFlightsPage> {
             width: double.infinity,
             height: 50,
             child: ElevatedButton(
-              onPressed: () => _searchFlights(),
+              onPressed: () => _searchTickets(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: const Text(
-                'Search Flights',
+                'Search Tickets',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -247,7 +254,7 @@ class _BookFlightsPageState extends State<BookFlightsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Popular Destinations',
+          'Popular Routes',
           style: TextStyle(
             color: Colors.white,
             fontSize: 20,
@@ -260,13 +267,17 @@ class _BookFlightsPageState extends State<BookFlightsPage> {
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: [
-              _buildDestinationCard('Paris', '🇫🇷', '₹37,350'),
+              _buildDestinationCard('Mumbai → Delhi', '🚄', '₹1,200'),
               const SizedBox(width: 12),
-              _buildDestinationCard('Tokyo', '🇯🇵', '₹56,440'),
+              _buildDestinationCard('Bangalore → Chennai', '🚌', '₹800'),
               const SizedBox(width: 12),
-              _buildDestinationCard('Dubai', '🇦🇪', '₹43,160'),
+              _buildDestinationCard('Delhi → Mumbai', '✈️', '₹4,500'),
               const SizedBox(width: 12),
-              _buildDestinationCard('Sydney', '🇦🇺', '₹62,250'),
+              _buildDestinationCard('Kolkata → Delhi', '🚄', '₹1,800'),
+              const SizedBox(width: 12),
+              _buildDestinationCard('Mumbai → Goa', '🚌', '₹1,200'),
+              const SizedBox(width: 12),
+              _buildDestinationCard('Chennai → Mumbai', '✈️', '₹5,800'),
             ],
           ),
         ),
@@ -321,7 +332,7 @@ class _BookFlightsPageState extends State<BookFlightsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Best Flight Deals',
+          'Best Travel Deals',
           style: TextStyle(
             color: Colors.white,
             fontSize: 20,
@@ -329,37 +340,46 @@ class _BookFlightsPageState extends State<BookFlightsPage> {
           ),
         ),
         const SizedBox(height: 16),
-        _buildFlightDealCard(
-          'New York → London',
-          'British Airways',
-          '₹37,350',
-          '8h 30m',
+        _buildTransportDealCard(
+          'Mumbai → Delhi',
+          'Rajdhani Express',
+          '₹1,200',
+          '16h 30m',
+          'AC 2 Tier',
+          Icons.train,
+        ),
+        const SizedBox(height: 12),
+        _buildTransportDealCard(
+          'Delhi → Mumbai',
+          'IndiGo Airlines',
+          '₹4,500',
+          '2h 15m',
           'Direct',
           Icons.flight,
         ),
         const SizedBox(height: 12),
-        _buildFlightDealCard(
-          'Los Angeles → Tokyo',
-          'Japan Airlines',
-          '₹56,440',
-          '11h 45m',
-          'Direct',
-          Icons.flight,
+        _buildTransportDealCard(
+          'Bangalore → Chennai',
+          'RedBus',
+          '₹800',
+          '6h 30m',
+          'Semi-Sleeper',
+          Icons.directions_bus,
         ),
         const SizedBox(height: 12),
-        _buildFlightDealCard(
-          'Miami → Paris',
-          'Air France',
-          '₹43,160',
-          '9h 15m',
-          '1 Stop',
-          Icons.flight,
+        _buildTransportDealCard(
+          'Kolkata → Delhi',
+          'Duronto Express',
+          '₹1,800',
+          '17h 30m',
+          'AC 3 Tier',
+          Icons.train,
         ),
       ],
     );
   }
 
-  Widget _buildFlightDealCard(String route, String airline, String price, String duration, String stops, IconData icon) {
+  Widget _buildTransportDealCard(String route, String operator, String price, String duration, String type, IconData icon) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -392,7 +412,7 @@ class _BookFlightsPageState extends State<BookFlightsPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  airline,
+                  operator,
                   style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 14,
@@ -415,7 +435,7 @@ class _BookFlightsPageState extends State<BookFlightsPage> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      stops,
+                      type,
                       style: const TextStyle(
                         color: Colors.white70,
                         fontSize: 12,
@@ -452,13 +472,14 @@ class _BookFlightsPageState extends State<BookFlightsPage> {
     );
   }
 
-  void _searchFlights() {
+  void _searchTickets() {
     // Show search results or navigate to results page
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Searching for flights...'),
+      SnackBar(
+        content: Text('Searching for $_selectedTransportType...'),
         backgroundColor: Colors.red,
       ),
     );
   }
+
 }

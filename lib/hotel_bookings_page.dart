@@ -74,7 +74,7 @@ class _HotelBookingsPageState extends State<HotelBookingsPage> {
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pushReplacementNamed(context, '/'),
           ),
           const SizedBox(width: 10),
           const Icon(Icons.hotel, color: Colors.white, size: 28),
@@ -472,4 +472,5 @@ class _HotelBookingsPageState extends State<HotelBookingsPage> {
       ),
     );
   }
+
 }
