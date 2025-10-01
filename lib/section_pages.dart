@@ -12,9 +12,9 @@ class BestDealsPage extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF8B0000), // Dark red
-              Color(0xFF4B0082), // Indigo
+              Color(0xFF2D1B69), // Deep purple
               Color(0xFF1A1A2E), // Dark blue
+              Colors.black, // Black at bottom
             ],
           ),
         ),
@@ -290,9 +290,9 @@ class AIReportPage extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF8B0000), // Dark red
-              Color(0xFF4B0082), // Indigo
+              Color(0xFF2D1B69), // Deep purple
               Color(0xFF1A1A2E), // Dark blue
+              Colors.black, // Black at bottom
             ],
           ),
         ),
@@ -500,9 +500,9 @@ class CartPage extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF8B0000), // Dark red
-              Color(0xFF4B0082), // Indigo
+              Color(0xFF2D1B69), // Deep purple
               Color(0xFF1A1A2E), // Dark blue
+              Colors.black, // Black at bottom
             ],
           ),
         ),
@@ -862,9 +862,9 @@ class WishlistPage extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF8B0000), // Dark red
-              Color(0xFF4B0082), // Indigo
+              Color(0xFF2D1B69), // Deep purple
               Color(0xFF1A1A2E), // Dark blue
+              Colors.black, // Black at bottom
             ],
           ),
         ),

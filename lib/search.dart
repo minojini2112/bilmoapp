@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'section_pages.dart';
 
 class SearchPage extends StatefulWidget {
   final String? searchQuery;
@@ -132,15 +133,16 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: _showSearchResults ? _buildFloatingMenu() : null,
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF8B0000), // Dark red
-              Color(0xFF4B0082), // Indigo
+              Color(0xFF2D1B69), // Deep purple
               Color(0xFF1A1A2E), // Dark blue
+              Colors.black, // Black at bottom
             ],
           ),
         ),
@@ -202,21 +204,28 @@ class _SearchPageState extends State<SearchPage> {
             ],
           ),
           
-          // Sign In Button
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.red,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: const Text(
-              'SIGN IN',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
+          // Wishlist and Cart Icons
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.favorite, color: Colors.white, size: 24),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => WishlistPage()),
+                  );
+                },
               ),
-            ),
+              IconButton(
+                icon: const Icon(Icons.shopping_cart, color: Colors.white, size: 24),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => CartPage()),
+                  );
+                },
+              ),
+            ],
           ),
         ],
       ),
@@ -815,6 +824,108 @@ class _SearchPageState extends State<SearchPage> {
       // SharedPreferences not available (e.g., in web mode)
       print('Could not save search query: $e');
     }
+  }
+
+  Widget _buildFloatingMenu() {
+    return Container(
+      height: 80,
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 10, 16, 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildFloatingMenuBox('Best Deals', Icons.local_offer, () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => BestDealsPage()),
+            );
+          }),
+          _buildFloatingMenuBox('AI Report', Icons.analytics, () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AIReportPage()),
+            );
+          }),
+          _buildFloatingMenuBox('News', Icons.newspaper, () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('News section coming soon!'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }),
+          _buildFloatingMenuBox('Reels', Icons.video_library, () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Reels section coming soon!'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFloatingMenuBox(String label, IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 65,
+        height: 80,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF2D1B69), // Deep purple
+              Colors.black, // Black at bottom
+            ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.3),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

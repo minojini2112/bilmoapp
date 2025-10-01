@@ -23,9 +23,9 @@ class ProductResultsScreen extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF8B0000), // Dark red
-              Color(0xFF4B0082), // Indigo
+              Color(0xFF2D1B69), // Deep purple
               Color(0xFF1A1A2E), // Dark blue
+              Colors.black, // Black at bottom
             ],
           ),
         ),
@@ -397,13 +397,6 @@ class ProductResultsScreen extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       child: Row(
         children: [
-          Builder(
-            builder: (context) => IconButton(
-              icon: const Icon(Icons.menu, color: Colors.white, size: 24),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            ),
-          ),
-          const SizedBox(width: 10),
           IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
             onPressed: () => Navigator.pushReplacementNamed(context, '/'),
@@ -411,12 +404,15 @@ class ProductResultsScreen extends StatelessWidget {
           const SizedBox(width: 10),
           const Icon(Icons.analytics, color: Colors.white, size: 28),
           const SizedBox(width: 10),
-          const Text(
-            'Analysis Results',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+          Expanded(
+            child: Text(
+              'Analysis Results',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -430,12 +426,12 @@ class ProductResultsScreen extends StatelessWidget {
       child: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF8B0000), // Dark red
-              Color(0xFF4B0082), // Indigo
+              Color(0xFF2D1B69), // Deep purple
               Color(0xFF1A1A2E), // Dark blue
+              Colors.black, // Black at bottom
             ],
           ),
         ),

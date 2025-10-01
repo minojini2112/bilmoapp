@@ -8,8 +8,18 @@ import 'book_flights_page.dart';
 import 'hotel_bookings_page.dart';
 import 'lens/camera_screen.dart';
 import 'package:camera/camera.dart';
+import 'auth_service.dart';
+import 'auth_wrapper.dart';
+import 'signin_page.dart';
+import 'signup_page.dart';
+import 'search_results_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Supabase with direct configuration
+  await AuthService.initialize();
+  
   runApp(const MainApp());
 }
 
@@ -41,7 +51,7 @@ class MainApp extends StatelessWidget {
           titleLarge: TextStyle(color: Colors.white),
         ),
       ),
-      home: const HomePage(),
+      home: const AuthWrapper(),
     );
   }
 }
@@ -134,9 +144,9 @@ class _HomePageState extends State<HomePage> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF8B0000), // Dark red
-              Color(0xFF4B0082), // Indigo
+              Color(0xFF2D1B69), // Deep purple
               Color(0xFF1A1A2E), // Dark blue
+              Colors.black, // Black at bottom
             ],
           ),
         ),
@@ -198,8 +208,22 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          // Sign In Button
-          Container(
+          // Sign In Button (always show when not logged in)
+          FutureBuilder<bool>(
+            future: AuthService.hasStoredSession(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData && snapshot.data == true) {
+                // When logged in, show nothing in the top right
+                return const SizedBox.shrink();
+              } else {
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SignInPage()),
+                    );
+                  },
+                  child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.red,
@@ -213,6 +237,10 @@ class _HomePageState extends State<HomePage> {
                 fontWeight: FontWeight.bold,
               ),
             ),
+                  ),
+                );
+              }
+            },
           ),
         ],
       ),
@@ -228,9 +256,9 @@ class _HomePageState extends State<HomePage> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF8B0000), // Dark red
-              Color(0xFF4B0082), // Indigo
+              Color(0xFF2D1B69), // Deep purple
               Color(0xFF1A1A2E), // Dark blue
+              Colors.black, // Black at bottom
             ],
           ),
         ),
@@ -276,14 +304,46 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     _buildDrawerItem('DASHBOARD', Icons.dashboard, 0),
                     _buildDrawerItem('BEST DEALS', Icons.local_offer, -1),
-                    _buildDrawerItem('AI REPORT', Icons.analytics, -2),
                     _buildDrawerItem('CART', Icons.shopping_cart, -3),
-                    _buildDrawerItem('WISHLIST', Icons.favorite, -4),
                     _buildDrawerItem('ABOUT US', Icons.info, 1),
                     _buildDrawerItem('PRICING', Icons.attach_money, 2),
                     _buildDrawerItem('CONTACT US', Icons.contact_mail, 3),
                   ],
                 ),
+              ),
+              // Sign Out Button at bottom
+              FutureBuilder<bool>(
+                future: AuthService.hasStoredSession(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data == true) {
+                    return Container(
+                      margin: const EdgeInsets.all(16),
+                      child: ListTile(
+                        leading: const Icon(Icons.logout, color: Colors.red),
+                        title: const Text(
+                          'SIGN OUT',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        onTap: () async {
+                          Navigator.pop(context); // Close drawer
+                          await AuthService.signOut();
+                          if (mounted) {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => SignInPage()),
+                            );
+                          }
+                        },
+                      ),
+                    );
+                  } else {
+                    return const SizedBox.shrink();
+                  }
+                },
               ),
             ],
           ),
@@ -311,20 +371,10 @@ class _HomePageState extends State<HomePage> {
             context,
             MaterialPageRoute(builder: (context) => const BestDealsPage()),
           );
-        } else if (index == -2) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AIReportPage()),
-          );
         } else if (index == -3) {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const CartPage()),
-          );
-        } else if (index == -4) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const WishlistPage()),
           );
         } else if (index == 1) {
           Navigator.push(
@@ -348,12 +398,12 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildHomeContent() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 0, bottom: 20),
       child: Column(
         children: [
           // Main Hero Section - Magically Smart Text with Static Sparkles
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 20),
+            padding: const EdgeInsets.only(top: 0, bottom: 10),
             child: Stack(
               alignment: Alignment.center,
               children: [
@@ -363,16 +413,16 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(
                     fontFamily: 'Back to Black Demo',
                     color: Colors.white,
-                    fontSize: 48,
+                    fontSize: 36,
                     fontWeight: FontWeight.w300,
                     fontStyle: FontStyle.italic,
                     height: 1.1,
-                    letterSpacing: 3.0,
+                    letterSpacing: 2.0,
                     shadows: [
                       Shadow(
                         color: Colors.white24,
-                        blurRadius: 15,
-                        offset: Offset(0, 3),
+                        blurRadius: 12,
+                        offset: Offset(0, 2),
                       ),
                     ],
                   ),
@@ -382,10 +432,10 @@ class _HomePageState extends State<HomePage> {
                 ...List.generate(6, (index) {
                   final random = Random(index);
                   return Positioned(
-                    left: 40 + (random.nextDouble() * 220),
-                    top: 20 + (random.nextDouble() * 120),
+                    left: 40 + (random.nextDouble() * 180),
+                    top: 15 + (random.nextDouble() * 90),
                     child: SparkleWidget(
-                      size: 6 + (random.nextDouble() * 8),
+                      size: 4 + (random.nextDouble() * 6),
                       color: Colors.white,
                       opacity: 0.7 + (random.nextDouble() * 0.3),
                       angle: random.nextDouble() * 2 * pi,
@@ -395,7 +445,7 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 20),
           // Search Section
           _buildSearchSection(),
           const SizedBox(height: 20),
@@ -414,13 +464,6 @@ class _HomePageState extends State<HomePage> {
                         MaterialPageRoute(builder: (context) => const BestDealsPage()),
                       );
                     }),
-                    const SizedBox(height: 12),
-                    _buildSectionCard('AI Report', Icons.analytics, () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const AIReportPage()),
-                      );
-                    }),
                   ],
                 ),
               ),
@@ -432,13 +475,6 @@ class _HomePageState extends State<HomePage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const CartPage()),
-                      );
-                    }),
-                    const SizedBox(height: 12),
-                    _buildSectionCard('Wishlist', Icons.favorite, () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const WishlistPage()),
                       );
                     }),
                   ],
@@ -457,24 +493,34 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 16),
-          // Explore Options - Sequential Layout
-          _buildExploreOption('Book Tickets', Icons.confirmation_number, '🎫', () {
+          // Explore Options - Row Layout
+          Row(
+            children: [
+              Expanded(
+                child: _buildExploreSquare('Book Tickets', Icons.confirmation_number, '🎫', () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const BookTicketsPage()),
             );
           }),
-          const SizedBox(height: 12),
-          _buildExploreOption('Hotel Bookings', Icons.hotel, '🏨', () {
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildExploreSquare('Hotel Bookings', Icons.hotel, '🏨', () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const HotelBookingsPage()),
             );
           }),
-          const SizedBox(height: 12),
-          _buildExploreOption('Fashion & Style', Icons.checkroom, '👗', () {
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildExploreSquare('Fashion & Style', Icons.checkroom, '👗', () {
             // Navigate to fashion page or show fashion deals
           }),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -484,7 +530,7 @@ class _HomePageState extends State<HomePage> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 120, // Made bigger
+        height: 80, // Reduced height for compactness
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.1),
           borderRadius: BorderRadius.circular(16), // More rounded
@@ -500,11 +546,11 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-        child: Column(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
@@ -512,15 +558,15 @@ class _HomePageState extends State<HomePage> {
               child: Icon(
                 icon,
                 color: Colors.white,
-                size: 36, // Made bigger
+                size: 24, // Reduced icon size
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(width: 12),
             Text(
               title,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 16, // Made bigger
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -530,11 +576,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildExploreOption(String title, IconData icon, String emoji, VoidCallback onTap) {
+  Widget _buildExploreSquare(String title, IconData icon, String emoji, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        height: 100,
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
@@ -543,47 +589,37 @@ class _HomePageState extends State<HomePage> {
             width: 1,
           ),
         ),
-        child: Row(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: Colors.red.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 emoji,
-                style: const TextStyle(fontSize: 24),
+                style: const TextStyle(fontSize: 20),
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            const SizedBox(height: 6),
                   Text(
                     title,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 18,
+                fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Discover amazing deals',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
+            const SizedBox(height: 2),
             Icon(
               icon,
               color: Colors.white70,
-              size: 24,
+              size: 16,
             ),
           ],
         ),
@@ -609,7 +645,7 @@ class _HomePageState extends State<HomePage> {
               controller: _searchController,
               style: const TextStyle(color: Colors.white, fontSize: 16),
               decoration: const InputDecoration(
-                hintText: 'Search products',
+                hintText: 'Ask Bilmo',
                 hintStyle: TextStyle(color: Colors.white70, fontSize: 16),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.zero,
@@ -622,7 +658,7 @@ class _HomePageState extends State<HomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => SearchPage(searchQuery: _searchController.text),
+                    builder: (context) => SearchResultsPage(query: _searchController.text),
                   ),
                 );
               }
