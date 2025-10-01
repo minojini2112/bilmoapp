@@ -15,187 +15,214 @@ class ProductResultsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Bilmo Lens - Analysis Results'),
-        backgroundColor: Colors.blue[700],
-        foregroundColor: Colors.white,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image display
-            Center(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.file(
-                  imageFile,
-                  height: 200,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            
-            // Product name and confidence
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    productResponse.productName,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _getConfidenceColor(productResponse.confidence),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    productResponse.confidence,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            
-            // Category and price
-            Row(
-              children: [
-                Icon(Icons.category, color: Colors.blue[600], size: 18),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    productResponse.category,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.grey[700],
-                      fontWeight: FontWeight.w500,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Icon(Icons.currency_rupee, color: Colors.green[600], size: 18),
-                const SizedBox(width: 2),
-                Flexible(
-                  child: Text(
-                    productResponse.estimatedPrice,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.green[700],
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            
-            // Description
-            _buildSection(
-              'Description',
-              Icons.description,
-              Text(
-                productResponse.description,
-                style: const TextStyle(fontSize: 15, height: 1.4),
-                maxLines: 4,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            
-            // Key Features
-            if (productResponse.keyFeatures.isNotEmpty)
-              _buildSection(
-                'Key Features',
-                Icons.star,
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: productResponse.keyFeatures
-                      .map((feature) => Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: Row(
-                              children: [
-                                Icon(Icons.check_circle, 
-                                     color: Colors.green[600], size: 16),
-                                const SizedBox(width: 8),
-                                Expanded(child: Text(feature)),
-                              ],
+      backgroundColor: const Color(0xFF1A1A2E),
+      drawer: _buildDrawer(context),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF2D1B69), // Deep purple
+              Color(0xFF1A1A2E), // Dark blue
+              Colors.black, // Black at bottom
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header
+              _buildHeader(context),
+              // Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Image display
+                      Center(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(
+                            imageFile,
+                            height: 200,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      
+                      // Product name and confidence
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              productResponse.productName,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ))
-                      .toList(),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: _getConfidenceColor(productResponse.confidence),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              productResponse.confidence,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      
+                      // Category and price
+                      Row(
+                        children: [
+                          Icon(Icons.category, color: Colors.blue[600], size: 18),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              productResponse.category,
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.white70,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(Icons.currency_rupee, color: Colors.green[600], size: 18),
+                          const SizedBox(width: 2),
+                          Flexible(
+                            child: Text(
+                              productResponse.estimatedPrice,
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.green[700],
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Description
+                      _buildSection(
+                        'Description',
+                        Icons.description,
+                        Text(
+                          productResponse.description,
+                          style: const TextStyle(fontSize: 15, height: 1.4, color: Colors.white70),
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      
+                      // Key Features
+                      if (productResponse.keyFeatures.isNotEmpty)
+                        _buildSection(
+                          'Key Features',
+                          Icons.star,
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: productResponse.keyFeatures
+                                .map((feature) => Padding(
+                                      padding: const EdgeInsets.only(bottom: 4),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.check_circle, 
+                                               color: Colors.green[600], size: 16),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              feature,
+                                              style: const TextStyle(color: Colors.white70),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ))
+                                .toList(),
+                          ),
+                        ),
+                      
+                      // Brands
+                      if (productResponse.brands.isNotEmpty)
+                        _buildSection(
+                          'Possible Brands',
+                          Icons.business,
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            children: productResponse.brands
+                                .map((brand) => Chip(
+                                      label: Text(brand),
+                                      backgroundColor: Colors.blue[50],
+                                      labelStyle: TextStyle(color: Colors.blue[700]),
+                                    ))
+                                .toList(),
+                          ),
+                        ),
+                      
+                      // Similar Products
+                      if (productResponse.similarProducts.isNotEmpty)
+                        _buildSection(
+                          'Similar Products Available',
+                          Icons.shopping_cart,
+                          Column(
+                            children: productResponse.similarProducts
+                                .map((product) => _buildSimilarProductCard(product))
+                                .toList(),
+                          ),
+                        ),
+                      
+                      // Search Suggestions
+                      if (productResponse.searchSuggestions.isNotEmpty)
+                        _buildSection(
+                          'Search Suggestions',
+                          Icons.search,
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            children: productResponse.searchSuggestions
+                                .map((suggestion) => ActionChip(
+                                      label: Text(suggestion),
+                                      onPressed: () {
+                                        // You can implement search functionality here
+                                        _showSearchDialog(context, suggestion);
+                                      },
+                                      backgroundColor: Colors.orange[50],
+                                      labelStyle: TextStyle(color: Colors.orange[700]),
+                                    ))
+                                .toList(),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
-            
-            // Brands
-            if (productResponse.brands.isNotEmpty)
-              _buildSection(
-                'Possible Brands',
-                Icons.business,
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: productResponse.brands
-                      .map((brand) => Chip(
-                            label: Text(brand),
-                            backgroundColor: Colors.blue[50],
-                            labelStyle: TextStyle(color: Colors.blue[700]),
-                          ))
-                      .toList(),
-                ),
-              ),
-            
-            // Similar Products
-            if (productResponse.similarProducts.isNotEmpty)
-              _buildSection(
-                'Similar Products Available',
-                Icons.shopping_cart,
-                Column(
-                  children: productResponse.similarProducts
-                      .map((product) => _buildSimilarProductCard(product))
-                      .toList(),
-                ),
-              ),
-            
-            // Search Suggestions
-            if (productResponse.searchSuggestions.isNotEmpty)
-              _buildSection(
-                'Search Suggestions',
-                Icons.search,
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: productResponse.searchSuggestions
-                      .map((suggestion) => ActionChip(
-                            label: Text(suggestion),
-                            onPressed: () {
-                              // You can implement search functionality here
-                              _showSearchDialog(context, suggestion);
-                            },
-                            backgroundColor: Colors.orange[50],
-                            labelStyle: TextStyle(color: Colors.orange[700]),
-                          ))
-                      .toList(),
-                ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -362,6 +389,159 @@ class ProductResultsScreen extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
+            onPressed: () => Navigator.pushReplacementNamed(context, '/'),
+          ),
+          const SizedBox(width: 10),
+          const Icon(Icons.analytics, color: Colors.white, size: 28),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Analysis Results',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawer(BuildContext context) {
+    return Drawer(
+      backgroundColor: const Color(0xFF1A1A2E),
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF2D1B69), // Deep purple
+              Color(0xFF1A1A2E), // Dark blue
+              Colors.black, // Black at bottom
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.orange,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'ai',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'BILMO',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(color: Colors.white24),
+              // Menu Items
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    _buildDrawerItem('DASHBOARD', Icons.dashboard, () {
+                      Navigator.pop(context);
+                      Navigator.pushReplacementNamed(context, '/');
+                    }),
+                    _buildDrawerItem('BEST DEALS', Icons.local_offer, () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/best-deals');
+                    }),
+                    _buildDrawerItem('AI REPORT', Icons.analytics, () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/ai-report');
+                    }),
+                    _buildDrawerItem('BOOK TICKETS', Icons.confirmation_number, () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/book-tickets');
+                    }),
+                    _buildDrawerItem('HOTEL BOOKINGS', Icons.hotel, () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/hotel-bookings');
+                    }),
+                    _buildDrawerItem('BILMO LENS', Icons.camera_alt, () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/camera');
+                    }),
+                    _buildDrawerItem('CART', Icons.shopping_cart, () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/cart');
+                    }),
+                    _buildDrawerItem('WISHLIST', Icons.favorite, () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/wishlist');
+                    }),
+                    _buildDrawerItem('ABOUT US', Icons.info, () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/about-us');
+                    }),
+                    _buildDrawerItem('PRICING', Icons.attach_money, () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/pricing');
+                    }),
+                    _buildDrawerItem('CONTACT US', Icons.contact_mail, () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/contact-us');
+                    }),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem(String title, IconData icon, VoidCallback onTap) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.white),
+      title: Text(
+        title,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      onTap: onTap,
     );
   }
 }

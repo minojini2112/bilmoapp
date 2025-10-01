@@ -1,11 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:math';
 import 'search.dart';
 import 'pages.dart';
 import 'section_pages.dart';
+import 'book_flights_page.dart';
+import 'hotel_bookings_page.dart';
+import 'lens/camera_screen.dart';
+import 'package:camera/camera.dart';
+import 'auth_service.dart';
+import 'auth_wrapper.dart';
+import 'signin_page.dart';
+import 'signup_page.dart';
+import 'search_results_page.dart';
 
-
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Supabase with direct configuration
+  await AuthService.initialize();
+  
   runApp(const MainApp());
 }
 
@@ -37,9 +51,76 @@ class MainApp extends StatelessWidget {
           titleLarge: TextStyle(color: Colors.white),
         ),
       ),
-      home: const HomePage(),
+      home: const AuthWrapper(),
     );
   }
+}
+
+class SparkleWidget extends StatelessWidget {
+  final double size;
+  final Color color;
+  final double opacity;
+  final double angle;
+
+  const SparkleWidget({
+    super.key,
+    required this.size,
+    required this.color,
+    required this.opacity,
+    required this.angle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: angle,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: color.withOpacity(opacity),
+          shape: BoxShape.circle,
+        ),
+        child: CustomPaint(
+          painter: SparklePainter(color: color, opacity: opacity),
+        ),
+      ),
+    );
+  }
+}
+
+class SparklePainter extends CustomPainter {
+  final Color color;
+  final double opacity;
+
+  SparklePainter({required this.color, required this.opacity});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color.withOpacity(opacity)
+      ..style = PaintingStyle.fill;
+
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+
+    // Draw sparkle shape (4-pointed star)
+    final path = Path();
+    path.moveTo(center.dx, center.dy - radius);
+    path.lineTo(center.dx + radius * 0.3, center.dy - radius * 0.3);
+    path.lineTo(center.dx + radius, center.dy);
+    path.lineTo(center.dx + radius * 0.3, center.dy + radius * 0.3);
+    path.lineTo(center.dx, center.dy + radius);
+    path.lineTo(center.dx - radius * 0.3, center.dy + radius * 0.3);
+    path.lineTo(center.dx - radius, center.dy);
+    path.lineTo(center.dx - radius * 0.3, center.dy - radius * 0.3);
+    path.close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class HomePage extends StatefulWidget {
@@ -51,8 +132,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
-  int _selectedIndex = 0;
-  bool _isDrawerOpen = false;
 
   @override
   Widget build(BuildContext context) {
@@ -65,9 +144,9 @@ class _HomePageState extends State<HomePage> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF8B0000), // Dark red
-              Color(0xFF4B0082), // Indigo
+              Color(0xFF2D1B69), // Deep purple
               Color(0xFF1A1A2E), // Dark blue
+              Colors.black, // Black at bottom
             ],
           ),
         ),
@@ -76,10 +155,9 @@ class _HomePageState extends State<HomePage> {
             children: [
               // Mobile Header with Hamburger Menu
               _buildMobileHeader(),
-              
               // Main content
               Expanded(
-                child: _selectedIndex == 0 ? _buildHomeContent() : _buildDashboardContent(),
+                child: _buildHomeContent(),
               ),
             ],
           ),
@@ -130,9 +208,22 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          
-          // Sign In Button
-          Container(
+          // Sign In Button (always show when not logged in)
+          FutureBuilder<bool>(
+            future: AuthService.hasStoredSession(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData && snapshot.data == true) {
+                // When logged in, show nothing in the top right
+                return const SizedBox.shrink();
+              } else {
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SignInPage()),
+                    );
+                  },
+                  child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.red,
@@ -146,6 +237,10 @@ class _HomePageState extends State<HomePage> {
                 fontWeight: FontWeight.bold,
               ),
             ),
+                  ),
+                );
+              }
+            },
           ),
         ],
       ),
@@ -161,9 +256,9 @@ class _HomePageState extends State<HomePage> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF8B0000), // Dark red
-              Color(0xFF4B0082), // Indigo
+              Color(0xFF2D1B69), // Deep purple
               Color(0xFF1A1A2E), // Dark blue
+              Colors.black, // Black at bottom
             ],
           ),
         ),
@@ -202,7 +297,6 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-              
               // Navigation Items
               Expanded(
                 child: ListView(
@@ -210,14 +304,46 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     _buildDrawerItem('DASHBOARD', Icons.dashboard, 0),
                     _buildDrawerItem('BEST DEALS', Icons.local_offer, -1),
-                    _buildDrawerItem('AI REPORT', Icons.analytics, -2),
                     _buildDrawerItem('CART', Icons.shopping_cart, -3),
-                    _buildDrawerItem('WISHLIST', Icons.favorite, -4),
                     _buildDrawerItem('ABOUT US', Icons.info, 1),
                     _buildDrawerItem('PRICING', Icons.attach_money, 2),
                     _buildDrawerItem('CONTACT US', Icons.contact_mail, 3),
                   ],
                 ),
+              ),
+              // Sign Out Button at bottom
+              FutureBuilder<bool>(
+                future: AuthService.hasStoredSession(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data == true) {
+                    return Container(
+                      margin: const EdgeInsets.all(16),
+                      child: ListTile(
+                        leading: const Icon(Icons.logout, color: Colors.red),
+                        title: const Text(
+                          'SIGN OUT',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        onTap: () async {
+                          Navigator.pop(context); // Close drawer
+                          await AuthService.signOut();
+                          if (mounted) {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => SignInPage()),
+                            );
+                          }
+                        },
+                      ),
+                    );
+                  } else {
+                    return const SizedBox.shrink();
+                  }
+                },
               ),
             ],
           ),
@@ -239,30 +365,16 @@ class _HomePageState extends State<HomePage> {
       ),
       onTap: () {
         Navigator.pop(context); // Close drawer
-        setState(() {
-          _selectedIndex = index;
-        });
-        
         // Navigate to specific pages
         if (index == -1) {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const BestDealsPage()),
           );
-        } else if (index == -2) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AIReportPage()),
-          );
         } else if (index == -3) {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const CartPage()),
-          );
-        } else if (index == -4) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const WishlistPage()),
           );
         } else if (index == 1) {
           Navigator.push(
@@ -286,41 +398,61 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildHomeContent() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 0, bottom: 20),
       child: Column(
         children: [
-          // Main Hero Section - Enhanced
+          // Main Hero Section - Magically Smart Text with Static Sparkles
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: const Text(
-              'Magically\nSmart',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 42,
-                fontWeight: FontWeight.w200,
-                fontStyle: FontStyle.italic,
-                height: 1.1,
-                letterSpacing: 2.0,
-                shadows: [
-                  Shadow(
-                    color: Colors.white24,
-                    blurRadius: 10,
-                    offset: Offset(0, 2),
+            padding: const EdgeInsets.only(top: 0, bottom: 10),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Main text - Static white text
+                const Text(
+                  'Magically\nSmart',
+                  style: TextStyle(
+                    fontFamily: 'Back to Black Demo',
+                    color: Colors.white,
+                    fontSize: 36,
+                    fontWeight: FontWeight.w300,
+                    fontStyle: FontStyle.italic,
+                    height: 1.1,
+                    letterSpacing: 2.0,
+                    shadows: [
+                      Shadow(
+                        color: Colors.white24,
+                        blurRadius: 12,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              textAlign: TextAlign.center,
+                  textAlign: TextAlign.center,
+                ),
+                // Static white sparkles around the text
+                ...List.generate(6, (index) {
+                  final random = Random(index);
+                  return Positioned(
+                    left: 40 + (random.nextDouble() * 180),
+                    top: 15 + (random.nextDouble() * 90),
+                    child: SparkleWidget(
+                      size: 4 + (random.nextDouble() * 6),
+                      color: Colors.white,
+                      opacity: 0.7 + (random.nextDouble() * 0.3),
+                      angle: random.nextDouble() * 2 * pi,
+                    ),
+                  );
+                }),
+              ],
             ),
           ),
-          
-          const SizedBox(height: 30),
-          
+          const SizedBox(height: 20),
           // Search Section
           _buildSearchSection(),
-          
+          const SizedBox(height: 20),
+          // Bilmo Lens Card
+          _buildBilmoLensCard(),
           const SizedBox(height: 30),
-          
-          // Main Content Grid - 2x2 layout (Bigger)
+          // Main Content Grid - 2x2 layout (Wider)
           Row(
             children: [
               Expanded(
@@ -332,17 +464,10 @@ class _HomePageState extends State<HomePage> {
                         MaterialPageRoute(builder: (context) => const BestDealsPage()),
                       );
                     }),
-                    const SizedBox(height: 16),
-                    _buildSectionCard('AI Report', Icons.analytics, () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const AIReportPage()),
-                      );
-                    }),
                   ],
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   children: [
@@ -352,21 +477,12 @@ class _HomePageState extends State<HomePage> {
                         MaterialPageRoute(builder: (context) => const CartPage()),
                       );
                     }),
-                    const SizedBox(height: 16),
-                    _buildSectionCard('Wishlist', Icons.favorite, () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const WishlistPage()),
-                      );
-                    }),
                   ],
                 ),
               ),
             ],
           ),
-          
           const SizedBox(height: 30),
-          
           // Explore Section
           const Text(
             'Explore',
@@ -377,19 +493,34 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 16),
-          
-          // Explore Options - Sequential Layout
-          _buildExploreOption('Book Flights', Icons.flight, '✈️', () {
-            // Navigate to flights page or show flights deals
+          // Explore Options - Row Layout
+          Row(
+            children: [
+              Expanded(
+                child: _buildExploreSquare('Book Tickets', Icons.confirmation_number, '🎫', () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const BookTicketsPage()),
+            );
           }),
-          const SizedBox(height: 12),
-          _buildExploreOption('Hotel Bookings', Icons.hotel, '🏨', () {
-            // Navigate to hotels page or show hotel deals
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildExploreSquare('Hotel Bookings', Icons.hotel, '🏨', () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const HotelBookingsPage()),
+            );
           }),
-          const SizedBox(height: 12),
-          _buildExploreOption('Fashion & Style', Icons.checkroom, '👗', () {
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildExploreSquare('Fashion & Style', Icons.checkroom, '👗', () {
             // Navigate to fashion page or show fashion deals
           }),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -399,7 +530,7 @@ class _HomePageState extends State<HomePage> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 120, // Made bigger
+        height: 80, // Reduced height for compactness
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.1),
           borderRadius: BorderRadius.circular(16), // More rounded
@@ -415,11 +546,11 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-        child: Column(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
@@ -427,15 +558,15 @@ class _HomePageState extends State<HomePage> {
               child: Icon(
                 icon,
                 color: Colors.white,
-                size: 36, // Made bigger
+                size: 24, // Reduced icon size
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(width: 12),
             Text(
               title,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 16, // Made bigger
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -445,11 +576,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildExploreOption(String title, IconData icon, String emoji, VoidCallback onTap) {
+  Widget _buildExploreSquare(String title, IconData icon, String emoji, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        height: 100,
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
@@ -458,47 +589,37 @@ class _HomePageState extends State<HomePage> {
             width: 1,
           ),
         ),
-        child: Row(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: Colors.red.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 emoji,
-                style: const TextStyle(fontSize: 24),
+                style: const TextStyle(fontSize: 20),
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            const SizedBox(height: 6),
                   Text(
                     title,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 18,
+                fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Discover amazing deals',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
+            const SizedBox(height: 2),
             Icon(
               icon,
               color: Colors.white70,
-              size: 24,
+              size: 16,
             ),
           ],
         ),
@@ -524,7 +645,7 @@ class _HomePageState extends State<HomePage> {
               controller: _searchController,
               style: const TextStyle(color: Colors.white, fontSize: 16),
               decoration: const InputDecoration(
-                hintText: 'Search products',
+                hintText: 'Ask Bilmo',
                 hintStyle: TextStyle(color: Colors.white70, fontSize: 16),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.zero,
@@ -537,7 +658,7 @@ class _HomePageState extends State<HomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => SearchPage(searchQuery: _searchController.text),
+                    builder: (context) => SearchResultsPage(query: _searchController.text),
                   ),
                 );
               }
@@ -560,126 +681,105 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
-  Widget _buildDashboardContent() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          // Search Input Fields
-          Row(
-            children: [
-              Expanded(
-                child: _buildSearchInput('Search Input 1'),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildSearchInput('Search Input 2'),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildSearchInput('Search Input 3'),
-              ),
-            ],
+  Widget _buildBilmoLensCard() {
+    return GestureDetector(
+      onTap: () => _openCameraScreen(),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.2),
+            width: 1,
           ),
-          
-          const SizedBox(height: 16),
-          
-          // Search Result Panel
-          Container(
-            width: double.infinity,
-            height: 120,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.2),
-                width: 1,
-              ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
-            child: const Center(
-              child: Text(
-                'Search Result',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          
-          const SizedBox(height: 16),
-          
-          // Bottom Row
-          Row(
-            children: [
-              Expanded(
-                child: _buildDashboardCard('Ai Report'),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildDashboardCard(''),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildDashboardCard('CART\nWatchlist'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchInput(String hint) {
-    return Container(
-      height: 40,
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.2),
-          width: 1,
+          ],
         ),
-      ),
-      child: TextField(
-        style: const TextStyle(color: Colors.white, fontSize: 12),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: const TextStyle(color: Colors.white70, fontSize: 12),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.camera_alt,
+                color: Colors.white,
+                size: 32,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Bilmo Lens',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Capture any product and find the best deals',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.white70,
+              size: 20,
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildDashboardCard(String text) {
-    return Container(
-      height: 80,
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.2),
-          width: 1,
+  Future<void> _openCameraScreen() async {
+    try {
+      // Get available cameras
+      final cameras = await availableCameras();
+      
+      if (cameras.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No cameras found on this device'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Navigate to camera screen
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CameraScreen(camera: cameras.first),
         ),
-      ),
-      child: Center(
-        child: text.isEmpty
-            ? null
-            : Text(
-                text,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-      ),
-    );
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error opening camera: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
 }
