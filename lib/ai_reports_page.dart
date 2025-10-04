@@ -2,10 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AIReportsPage extends StatelessWidget {
-  const AIReportsPage({super.key});
+  final List<Map<String, dynamic>> reports;
+  final String product;
+  
+  const AIReportsPage({
+    super.key, 
+    required this.reports,
+    required this.product,
+  });
 
-  // Sample data - will be replaced with API call later
-  final List<Map<String, dynamic>> reports = const [
+  // Fallback sample data if no API data
+  static const List<Map<String, dynamic>> fallbackReports = [
     {
       "id": "Report1",
       "title": "Amazon Renewed Premium iPhone 15 Pro Max Deals",
@@ -26,6 +33,14 @@ class AIReportsPage extends StatelessWidget {
     }
   ];
 
+  // Get reports to display (use API data or fallback)
+  List<Map<String, dynamic>> get displayReports {
+    if (reports.isNotEmpty) {
+      return reports;
+    }
+    return fallbackReports;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,9 +52,9 @@ class AIReportsPage extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'AI Reports',
-          style: TextStyle(
+        title: Text(
+          'AI Reports - $product',
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -132,9 +147,9 @@ class AIReportsPage extends StatelessWidget {
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: reports.length,
+                itemCount: displayReports.length,
                 itemBuilder: (context, index) {
-                  final report = reports[index];
+                  final report = displayReports[index];
                   return _buildReportCard(context, report, index);
                 },
               ),

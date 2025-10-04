@@ -2,10 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class NewsPage extends StatelessWidget {
-  const NewsPage({super.key});
+  final List<Map<String, dynamic>> news;
+  final String product;
+  
+  const NewsPage({
+    super.key, 
+    required this.news,
+    required this.product,
+  });
 
-  // Sample data - will be replaced with API call later
-  final List<Map<String, dynamic>> news = const [
+  // Fallback sample data if no API data
+  static const List<Map<String, dynamic>> fallbackNews = [
     {
       "id": "News1",
       "title": "Trends in iPhone 15 Pro Max Deals",
@@ -26,6 +33,14 @@ class NewsPage extends StatelessWidget {
     }
   ];
 
+  // Get news to display (use API data or fallback)
+  List<Map<String, dynamic>> get displayNews {
+    if (news.isNotEmpty) {
+      return news;
+    }
+    return fallbackNews;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,9 +52,9 @@ class NewsPage extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Market News',
-          style: TextStyle(
+        title: Text(
+          'Market News - $product',
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -132,9 +147,9 @@ class NewsPage extends StatelessWidget {
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: news.length,
+                itemCount: displayNews.length,
                 itemBuilder: (context, index) {
-                  final article = news[index];
+                  final article = displayNews[index];
                   return _buildNewsCard(context, article, index);
                 },
               ),

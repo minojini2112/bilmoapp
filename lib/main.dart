@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
-import 'search.dart';
 import 'pages.dart';
-import 'section_pages.dart';
+import 'best_deals_page.dart';
 import 'book_flights_page.dart';
 import 'hotel_bookings_page.dart';
 import 'lens/camera_screen.dart';
@@ -11,8 +9,8 @@ import 'package:camera/camera.dart';
 import 'auth_service.dart';
 import 'auth_wrapper.dart';
 import 'signin_page.dart';
-import 'signup_page.dart';
 import 'search_results_page.dart';
+import 'api_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -132,6 +130,18 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Test connectivity when the app starts
+    _testConnectivity();
+  }
+
+  Future<void> _testConnectivity() async {
+    print('🔍 Testing mobile connectivity on app start...');
+    await ApiService.testMobileConnectivity();
+  }
 
   @override
   Widget build(BuildContext context) {
