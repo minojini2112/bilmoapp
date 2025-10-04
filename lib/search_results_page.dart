@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'dart:async';
-import 'dart:io';
 import 'package:url_launcher/url_launcher.dart';
 import 'ai_reports_page.dart';
 import 'news_page.dart';
+import 'api_service.dart';
 
 class ChatMessage {
   final String text;
@@ -43,8 +41,17 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   String currentLoadingPhrase = '';
   int loadingPhraseIndex = 0;
   List<String> suggestedItems = [];
+  
+  // AI data storage
+  List<Map<String, dynamic>> aiReports = [];
+  List<Map<String, dynamic>> newsData = [];
+  List<Map<String, dynamic>> similarProducts = [];
+  String currentProduct = '';
+  
+  // AI loading states
+  bool isAiDataLoading = true;
 
-  // Fun loading phrases
+  // Fun loading phrases - extended for longer searches (5+ minutes)
   final List<String> loadingPhrases = [
     "🔍 Scouring the digital shelves...",
     "🛍️ Hunting for the best deals...",
@@ -60,12 +67,50 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     "🎨 Painting your perfect product...",
     "🎵 Harmonizing with e-commerce...",
     "🎭 The shopping show must go on...",
+    "⏰ Taking time to find the best deals...",
+    "🔄 Deep scanning multiple stores...",
+    "📊 Analyzing thousands of products...",
+    "🤖 AI is working hard for you...",
+    "💪 Powering through massive catalogs...",
+    "🎯 Precision targeting the best prices...",
+    "🔬 Scientific shopping in progress...",
+    "🌍 Searching across the globe...",
+    "⚙️ Fine-tuning the perfect results...",
+    "🎪 The search circus continues...",
+    "🚀 Still zooming through data...",
+    "💎 Still digging for gems...",
+    "🧠 AI is still thinking...",
+    "✨ More magic happening...",
+    "🔥 Still heating up...",
+    "🌟 Still collecting stardust...",
+    "🎨 Still painting your results...",
+    "🎵 Still harmonizing...",
+    "🎭 The show continues...",
+    "⏳ Patience is a virtue...",
+    "🔄 Still scanning...",
+    "📊 Still analyzing...",
+    "🤖 AI is still working...",
+    "💪 Still powering through...",
+    "🎯 Still targeting...",
+    "🔬 Still researching...",
+    "🌍 Still searching globally...",
+    "⚙️ Still fine-tuning...",
     "🎪 Juggling products and prices...",
     "🎨 Creating your shopping masterpiece...",
     "🎯 Bullseye! Finding your target...",
     "🚀 Launching into product space...",
     "💫 Wishing upon shopping stars...",
     "🎪 The greatest show on e-commerce...",
+    "🕷️ Web scraping in progress...",
+    "🤖 AI analyzing market trends...",
+    "📊 Processing product data...",
+    "🔍 Deep diving into deals...",
+    "⚡ Powering up search engines...",
+    "🎯 Targeting the best offers...",
+    "💎 Mining for hidden treasures...",
+    "🚀 Exploring the product universe...",
+    "🧠 Smart algorithms at work...",
+    "✨ Crafting your perfect results...",
   ];
 
   // Dynamic backend URL detection
@@ -100,148 +145,183 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     
     // Start loading animation
     _startLoadingAnimation();
-
-    // Try different backend URLs for different platforms
-    final List<String> possibleUrls = [
-      'http://127.0.0.1:5000', // ADB port forwarding (should work for USB devices)
-      'http://localhost:5000', // ADB port forwarding alternative
-      'http://192.168.29.197:5000', // Your actual local network IP (Wi-Fi)
-      'http://10.0.2.2:5000', // Android emulator
-    ];
     
-    print('🔍 Testing backend connectivity...');
-    print('📱 Device type: ${Platform.isAndroid ? 'Android' : 'Other'}');
-    print('🌐 Available URLs to try: $possibleUrls');
+    // Store current product for AI data
+    currentProduct = widget.query;
 
-    for (String baseUrl in possibleUrls) {
-      try {
-        // First test basic connectivity
-        print('🔍 Testing connectivity to: $baseUrl');
-        final testResponse = await http.get(
-          Uri.parse('$baseUrl/'),
-          headers: {'Accept': 'application/json'},
-        ).timeout(const Duration(seconds: 5));
+    // Make dual API calls: search products and get AI data
+    print('🔍 Starting dual API calls for: ${widget.query}');
+    
+    // Test connectivity first (for debugging)
+    await ApiService.testConnectivity();
+    
+    // Add a message after 30 seconds to inform user about long search
+    Timer(const Duration(seconds: 30), () {
+      if (isLoading) {
+        setState(() {
+          chatMessages.add(ChatMessage(
+            text: "🔍 This search is taking longer than usual - we're scanning multiple stores to find you the best deals. Please hang tight!",
+            isUser: false,
+            timestamp: DateTime.now(),
+          ));
+        });
+        _scrollToBottom();
+      }
+    });
+    
+    // Start both API calls in parallel but don't wait for both
+    final searchFuture = ApiService.searchProducts(widget.query);
+    final newsFuture = ApiService.getProductNews(widget.query);
+    
+    // Note: Removed minimum loading time since we're not waiting for both APIs
+    
+    // Wait for search results first (don't wait for news API)
+    final searchData = await searchFuture;
+    
+    // Process search results immediately when available
+    if (searchData != null && searchData['results'] != null && searchData['results'].isNotEmpty) {
+      setState(() {
+        searchResults = searchData['results'];
+        print('🏪 Search results count: ${searchResults.length}');
         
-        if (testResponse.statusCode == 200) {
-          print('✅ Backend is reachable at: $baseUrl');
-        } else {
-          print('⚠️ Backend responded with status: ${testResponse.statusCode}');
-        }
-        
-        final url = '$baseUrl/search?query=${Uri.encodeComponent(widget.query)}&max_results=5&force_fresh=false';
-        print('🔍 Trying GET request to: $url'); // Debug log
-        
-        final response = await http.get(
-          Uri.parse(url),
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-        ).timeout(const Duration(seconds: 10));
-        
-        print('📡 Response status: ${response.statusCode}'); // Debug log
-
-        if (response.statusCode == 200) {
-          final data = json.decode(response.body);
-          print('📊 API Response: ${data.toString()}'); // Debug log
+        // Flatten all products from all stores
+        List<dynamic> allProducts = [];
+        for (var store in searchResults) {
+          print('🏬 Store: ${store['site']}, Products: ${store['products']?.length ?? 0}');
           
-          // Check if we have results (regardless of success field)
-          if (data['results'] != null && data['results'].isNotEmpty) {
-            setState(() {
-              searchResults = data['results'];
-              print('🏪 Search results count: ${searchResults.length}');
-              
-              // Flatten all products from all stores
-              List<dynamic> allProducts = [];
-              for (var store in searchResults) {
-                print('🏬 Store: ${store['site']}, Products: ${store['products']?.length ?? 0}');
-                if (store['products'] != null && store['products'].isNotEmpty) {
-                  for (var product in store['products']) {
-                    // Add store information to each product
-                    product['site'] = store['site'] ?? 'Unknown';
-                    allProducts.add(product);
-                  }
-                }
-              }
-              print('🛍️ Total products found: ${allProducts.length}');
-              print('🏪 Available stores: ${searchResults.map((s) => s['site']).toList()}'); // Debug log
-              
-              // Debug: Print first product to see structure
-              if (allProducts.isNotEmpty) {
-                print('🔍 First product structure: ${allProducts.first.keys.toList()}');
-                print('📝 First product data: ${allProducts.first}');
-              }
-              
-              // Extract available stores for filtering
-              availableStores = searchResults
-                  .where((store) => store['products'] != null && store['products'].isNotEmpty)
-                  .map((result) => result['site']?.toString() ?? 'Unknown')
-                  .toSet()
-                  .toList();
-              selectedStores = availableStores.toSet(); // Select all stores by default
-              
-              print('🏪 Available stores for filtering: $availableStores');
-              print('✅ Selected stores: $selectedStores');
-              isLoading = false;
-              
-              // Add AI response to chat with flattened products
-              if (allProducts.isNotEmpty) {
-                chatMessages.add(ChatMessage(
-                  text: "Here are the best deals I found for '${widget.query}':",
-                  isUser: false,
-                  timestamp: DateTime.now(),
-                  products: allProducts,
-                ));
-                
-                // Generate suggested items based on the search query
-                _generateSuggestedItems(widget.query);
-              } else {
-                chatMessages.add(ChatMessage(
-                  text: "I couldn't find any products for '${widget.query}'. Please try a different search term.",
-                  isUser: false,
-                  timestamp: DateTime.now(),
-                ));
-              }
-            });
-            _stopLoadingAnimation();
-            return; // Success, exit the loop
-          } else {
-            print('❌ No results found in API response');
-            print('📊 Response structure: ${data.keys.toList()}');
-            setState(() {
-              errorMessage = data['error'] ?? 'No results found. API response: ${data.toString()}';
-              isLoading = false;
-              
-              // Add error message to chat
-              chatMessages.add(ChatMessage(
-                text: "Sorry, I couldn't find any results for '${widget.query}'. Please try a different search term.",
-                isUser: false,
-                timestamp: DateTime.now(),
-              ));
-            });
-            _stopLoadingAnimation();
-            return; // Error from API, exit the loop
+          // Check different product arrays based on store structure
+          List<dynamic> storeProducts = [];
+          
+          // Myntra uses 'products' array
+          if (store['products'] != null && store['products'].isNotEmpty) {
+            storeProducts.addAll(store['products']);
+          }
+          
+          // Flipkart, Amazon, Meesho use 'basic_products' and 'detailed_products' arrays
+          if (store['basic_products'] != null && store['basic_products'].isNotEmpty) {
+            storeProducts.addAll(store['basic_products']);
+          }
+          
+          if (store['detailed_products'] != null && store['detailed_products'].isNotEmpty) {
+            storeProducts.addAll(store['detailed_products']);
+          }
+          
+          // Add store information to each product and normalize the data
+          for (var product in storeProducts) {
+            // Add store information
+            product['site'] = store['site'] ?? 'Unknown';
+            
+            // Normalize product data - handle different field names
+            _normalizeProductData(product);
+            
+            allProducts.add(product);
           }
         }
-      } catch (e) {
-        print('❌ Failed to connect to $baseUrl: $e');
-        continue; // Try next URL
-      }
+        print('🛍️ Total products found: ${allProducts.length}');
+        
+        // Extract available stores for filtering
+        availableStores = searchResults
+            .where((store) {
+              // Check if store has any products in any of the possible arrays
+              return (store['products'] != null && store['products'].isNotEmpty) ||
+                     (store['basic_products'] != null && store['basic_products'].isNotEmpty) ||
+                     (store['detailed_products'] != null && store['detailed_products'].isNotEmpty);
+            })
+            .map((result) => result['site']?.toString() ?? 'Unknown')
+            .toSet()
+            .toList();
+        selectedStores = availableStores.toSet(); // Select all stores by default
+        
+        print('🏪 Available stores for filtering: $availableStores');
+        print('✅ Selected stores: $selectedStores');
+        
+        // Add AI response to chat with flattened products
+        if (allProducts.isNotEmpty) {
+          chatMessages.add(ChatMessage(
+            text: "Here are the best deals I found for '${widget.query}':",
+            isUser: false,
+            timestamp: DateTime.now(),
+            products: allProducts,
+          ));
+        } else {
+          // Only show no results message if we actually got a response but no products
+          chatMessages.add(ChatMessage(
+            text: "I couldn't find any products for '${widget.query}'. Please try a different search term.",
+            isUser: false,
+            timestamp: DateTime.now(),
+          ));
+        }
+      });
+      
+      // Stop loading animation for search results
+      setState(() {
+        isLoading = false;
+      });
+      _stopLoadingAnimation();
+    } else if (searchData != null) {
+      // We got a response but no results - this is a real "no results" case
+      setState(() {
+        chatMessages.add(ChatMessage(
+          text: "Sorry, I couldn't find any results for '${widget.query}'. Please try a different search term.",
+          isUser: false,
+          timestamp: DateTime.now(),
+        ));
+        isLoading = false;
+      });
+      _stopLoadingAnimation();
+    } else {
+      // No response at all - this means API call failed or timed out
+      setState(() {
+        errorMessage = 'Could not connect to backend server.';
+        chatMessages.add(ChatMessage(
+          text: "I'm having trouble connecting to the server. Please check your internet connection and try again.",
+          isUser: false,
+          timestamp: DateTime.now(),
+        ));
+        isLoading = false;
+      });
+      _stopLoadingAnimation();
     }
     
-    // If we reach here, all URLs failed
-    setState(() {
-      errorMessage = 'Could not connect to backend server.';
-      isLoading = false;
+    // Now handle the news API separately (don't block the UI)
+    _handleNewsApiAsync(newsFuture);
+  }
+
+  // Handle news API asynchronously without blocking the UI
+  Future<void> _handleNewsApiAsync(Future<Map<String, dynamic>?> newsFuture) async {
+    try {
+      final newsApiData = await newsFuture;
       
-      // Add error message to chat
-      chatMessages.add(ChatMessage(
-        text: "I'm having trouble connecting to the server. Please check your internet connection and try again.",
-        isUser: false,
-        timestamp: DateTime.now(),
-      ));
-    });
-    _stopLoadingAnimation();
+      // Process AI data (reports, news, similar products)
+      if (newsApiData != null && newsApiData['data'] != null) {
+        setState(() {
+          aiReports = List<Map<String, dynamic>>.from(newsApiData['data']['reports'] ?? []);
+          newsData = List<Map<String, dynamic>>.from(newsApiData['data']['news'] ?? []);
+          similarProducts = List<Map<String, dynamic>>.from(newsApiData['data']['repurchase'] ?? []);
+          isAiDataLoading = false; // AI data loaded
+          
+          print('📊 AI Reports: ${aiReports.length}');
+          print('📰 News items: ${newsData.length}');
+          print('🛍️ Similar products: ${similarProducts.length}');
+          
+          // Generate suggested items from AI data
+          _generateSuggestedItemsFromAI();
+        });
+      } else {
+        print('⚠️ No AI data received, using fallback suggestions');
+        setState(() {
+          isAiDataLoading = false; // Stop loading even if no data
+        });
+        _generateSuggestedItems(widget.query);
+      }
+    } catch (e) {
+      print('❌ News API failed: $e');
+      setState(() {
+        isAiDataLoading = false; // Stop loading on error
+      });
+      // Use fallback suggestions if news API fails
+      _generateSuggestedItems(widget.query);
+    }
   }
 
   Future<void> _sendMessage() async {
@@ -298,8 +378,8 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
       currentLoadingPhrase = loadingPhrases[loadingPhraseIndex];
     });
     
-    // Change phrase every 2 seconds
-    Timer.periodic(const Duration(seconds: 2), (timer) {
+    // Change phrase every 3 seconds (increased for better UX)
+    Timer.periodic(const Duration(seconds: 3), (timer) {
       if (!isTyping) {
         timer.cancel();
         return;
@@ -521,7 +601,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                 const SizedBox(width: 6),
                 const Expanded(
                   child: Text(
-                    '💡 Perfect Complements',
+                    '💡 Perfect Picks',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 14,
@@ -546,50 +626,53 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
             ),
           ),
           const SizedBox(height: 10),
-          // Suggested items grid - Fixed layout
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: suggestedItems.map((item) {
-                return Container(
-                  margin: const EdgeInsets.only(right: 8),
-                  child: GestureDetector(
-                    onTap: () => _onSuggestedItemTap(item),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
-                          width: 1,
+          // Suggested items grid - Creative loading animation
+          if (isAiDataLoading)
+            _buildCreativeLoadingAnimation()
+          else
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: suggestedItems.map((item) {
+                  return Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    child: GestureDetector(
+                      onTap: () => _onSuggestedItemTap(item),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.add_shopping_cart,
+                              color: Colors.green[300],
+                              size: 12,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              item,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.add_shopping_cart,
-                            color: Colors.green[300],
-                            size: 12,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            item,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
-                  ),
-                );
-              }).toList(),
+                  );
+                }).toList(),
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -1026,24 +1109,30 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
             },
           ),
           _buildMenuOption(
-            icon: Icons.psychology,
-            label: 'AI Report',
-            color: Colors.red,
-            onTap: () {
+            icon: isAiDataLoading ? Icons.hourglass_empty : Icons.psychology,
+            label: isAiDataLoading ? 'Loading...' : 'AI Report',
+            color: isAiDataLoading ? Colors.orange : Colors.red,
+            onTap: isAiDataLoading ? null : () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const AIReportsPage()),
+                MaterialPageRoute(builder: (context) => AIReportsPage(
+                  reports: aiReports,
+                  product: currentProduct,
+                )),
               );
             },
           ),
           _buildMenuOption(
-            icon: Icons.newspaper,
-            label: 'News',
-            color: Colors.red,
-            onTap: () {
+            icon: isAiDataLoading ? Icons.hourglass_empty : Icons.newspaper,
+            label: isAiDataLoading ? 'Loading...' : 'News',
+            color: isAiDataLoading ? Colors.orange : Colors.red,
+            onTap: isAiDataLoading ? null : () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const NewsPage()),
+                MaterialPageRoute(builder: (context) => NewsPage(
+                  news: newsData,
+                  product: currentProduct,
+                )),
               );
             },
           ),
@@ -1069,7 +1158,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     required IconData icon,
     required String label,
     required Color color,
-    required VoidCallback onTap,
+    VoidCallback? onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -1172,7 +1261,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
       case 'meesho':
         return 'https://ik.imagekit.io/varsh0506/Bilmo/Meesho_small.png?updatedAt=1759302709615';
       case 'myntra':
-        return 'https://ik.imagekit.io/varsh0506/Bilmo/myntra_small.png?updatedAt=1759302709491'; // Myntra logo
+        return 'https://ik.imagekit.io/varsh0506/Bilmo/myntra_logo.jpg?updatedAt=1759399069138'; // Myntra logo
       default:
         return 'https://ik.imagekit.io/varsh0506/Bilmo/default_small.png?updatedAt=1759302709491'; // Default logo
     }
@@ -1209,6 +1298,88 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     setState(() {});
   }
 
+  void _generateSuggestedItemsFromAI() {
+    // Generate suggested items from AI similar products data
+    suggestedItems = similarProducts.take(8).map((product) {
+      return product['name']?.toString() ?? 'Unknown Product';
+    }).toList();
+    
+    // If we don't have enough AI suggestions, add some fallback items
+    if (suggestedItems.length < 4) {
+      suggestedItems.addAll([
+        'wireless mouse',
+        'laptop charger',
+        'keyboard',
+        'laptop bag',
+      ]);
+    }
+    
+    setState(() {});
+  }
+
+  void _normalizeProductData(Map<String, dynamic> product) {
+    // Handle different field names used by different stores
+    // Title/Name normalization - try multiple field names
+    String? title;
+    if (product['title'] != null && product['title'].toString().isNotEmpty) {
+      title = product['title'].toString();
+    } else if (product['name'] != null && product['name'].toString().isNotEmpty) {
+      title = product['name'].toString();
+    } else if (product['description'] != null && product['description'].toString().isNotEmpty) {
+      title = product['description'].toString();
+    } else if (product['brand'] != null && product['brand'].toString().isNotEmpty) {
+      title = product['brand'].toString();
+    }
+    
+    // Set both title and name for consistency
+    if (title != null) {
+      product['title'] = title;
+      product['name'] = title;
+    }
+    
+    // Image URL normalization
+    if (product['image_url'] == null) {
+      // Try different image field names
+      if (product['image'] != null) {
+        if (product['image'] is String) {
+          product['image_url'] = product['image'];
+        } else if (product['image'] is Map && product['image']['url'] != null) {
+          product['image_url'] = product['image']['url'];
+        }
+      }
+      
+      // Try images array (for detailed products)
+      if (product['images'] != null && product['images'] is List && product['images'].isNotEmpty) {
+        var firstImage = product['images'][0];
+        if (firstImage is Map && firstImage['url'] != null) {
+          product['image_url'] = firstImage['url'];
+        }
+      }
+      
+      // Try image_thumbnail field
+      if (product['image_thumbnail'] != null) {
+        product['image_url'] = product['image_thumbnail'];
+      }
+    }
+    
+    // Rating normalization
+    if (product['rating'] == null && product['reviews_count'] != null) {
+      // Some stores put rating in reviews_count field
+      var ratingStr = product['reviews_count'].toString();
+      var ratingMatch = RegExp(r'(\d+\.?\d*)').firstMatch(ratingStr);
+      if (ratingMatch != null) {
+        product['rating'] = double.tryParse(ratingMatch.group(1) ?? '0');
+      }
+    }
+    
+    // Ensure we have a valid title
+    if (product['title'] == null || product['title'].toString().isEmpty) {
+      product['title'] = 'Product from ${product['site'] ?? 'Unknown Store'}';
+    }
+    
+    print('📝 Normalized product: ${product['title']} - ${product['price']} - ${product['image_url']}');
+  }
+
   void _onSuggestedItemTap(String suggestedItem) {
     // Add user message for the suggested item
     chatMessages.add(ChatMessage(
@@ -1239,105 +1410,97 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
     });
 
     _startLoadingAnimation();
+    
+    // Store current product for AI data
+    currentProduct = query;
 
-    // List of possible backend URLs to try
-    final List<String> possibleUrls = [
-      'http://127.0.0.1:5000', // For ADB port forwarding
-      'http://10.0.2.2:5000', // For Android emulator
-      'http://192.168.29.197:5000', // Your local IP
-      'http://localhost:5000', // Fallback
-    ];
-
-    for (String baseUrl in possibleUrls) {
-      try {
-        final url = '$baseUrl/search?query=${Uri.encodeComponent(query)}&max_results=5&force_fresh=false';
-        print('🔍 Trying GET request to: $url'); // Debug log
+    // Use the same improved API service
+    print('🔍 Starting suggested search for: $query');
+    
+    // Start both API calls in parallel
+    final searchFuture = ApiService.searchProducts(query);
+    final newsFuture = ApiService.getProductNews(query);
+    
+    // Ensure minimum loading time of 2 seconds for better UX
+    final minLoadingTime = Future.delayed(const Duration(seconds: 2));
+    
+    // Wait for both API calls and minimum loading time
+    final results = await Future.wait([
+      searchFuture,
+      newsFuture,
+      minLoadingTime,
+    ]);
+    final searchData = results[0];
+    final newsApiData = results[1];
+    
+    // Process search results
+    if (searchData != null && searchData['results'] != null && searchData['results'].isNotEmpty) {
+      setState(() {
+        searchResults = searchData['results'];
         
-        final response = await http.get(
-          Uri.parse(url),
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-        ).timeout(const Duration(seconds: 10));
-
-        print('📡 Response status: ${response.statusCode}');
-        print('📡 Response body: ${response.body}');
-
-        if (response.statusCode == 200) {
-          final data = json.decode(response.body);
-          print('✅ Successfully got data: $data');
-
-          setState(() {
-            searchResults = data['results'] ?? [];
-            isLoading = false;
-            
-            // Extract available stores for filtering
-            availableStores.clear();
-            for (var store in searchResults) {
-              if (store['site'] != null) {
-                availableStores.add(store['site']);
-              }
+        // Extract available stores for filtering
+        availableStores.clear();
+        for (var store in searchResults) {
+          if (store['site'] != null) {
+            availableStores.add(store['site']);
+          }
+        }
+        
+        // Flatten all products from all stores
+        List<dynamic> allProducts = [];
+        for (var store in searchResults) {
+          if (store['products'] != null && store['products'].isNotEmpty) {
+            for (var product in store['products']) {
+              // Add store information to each product
+              product['site'] = store['site'] ?? 'Unknown';
+              allProducts.add(product);
             }
-            
-            print('🏪 Available stores for filtering: $availableStores');
-            print('✅ Selected stores: $selectedStores');
-            isLoading = false;
-            
-            // Flatten all products from all stores
-            List<dynamic> allProducts = [];
-            for (var store in searchResults) {
-              if (store['products'] != null && store['products'].isNotEmpty) {
-                for (var product in store['products']) {
-                  // Add store information to each product
-                  product['site'] = store['site'] ?? 'Unknown';
-                  allProducts.add(product);
-                }
-              }
-            }
-            
-            // Add AI response to chat with flattened products
-            if (allProducts.isNotEmpty) {
-              chatMessages.add(ChatMessage(
-                text: "Here are the best deals I found for '$query':",
-                isUser: false,
-                timestamp: DateTime.now(),
-                products: allProducts,
-              ));
-              
-              // Generate suggested items based on the search query
-              _generateSuggestedItems(query);
-            } else {
-              chatMessages.add(ChatMessage(
-                text: "I couldn't find any products for '$query'. Please try a different search term.",
-                isUser: false,
-                timestamp: DateTime.now(),
-              ));
-            }
-          });
-          _stopLoadingAnimation();
-          return; // Success, exit the loop
+          }
+        }
+        
+        // Add AI response to chat with flattened products
+        if (allProducts.isNotEmpty) {
+          chatMessages.add(ChatMessage(
+            text: "Here are the best deals I found for '$query':",
+            isUser: false,
+            timestamp: DateTime.now(),
+            products: allProducts,
+          ));
         } else {
-          setState(() {
-            errorMessage = 'Server returned status ${response.statusCode}';
-            isLoading = false;
-          });
+          chatMessages.add(ChatMessage(
+            text: "I couldn't find any products for '$query'. Please try a different search term.",
+            isUser: false,
+            timestamp: DateTime.now(),
+          ));
         }
-      } catch (e) {
-        print('❌ Error with $baseUrl: $e');
-        print('🔍 Error type: ${e.runtimeType}');
-        if (e.toString().contains('SocketException')) {
-          print('🌐 Network connection issue - check if backend is running');
-        } else if (e.toString().contains('TimeoutException')) {
-          print('⏰ Request timeout - backend might be slow');
-        }
-        setState(() {
-          errorMessage = 'Connection failed with $baseUrl: $e';
-          isLoading = false;
-        });
-      }
+      });
+    } else {
+      setState(() {
+        chatMessages.add(ChatMessage(
+          text: "Sorry, I couldn't find any results for '$query'. Please try a different search term.",
+          isUser: false,
+          timestamp: DateTime.now(),
+        ));
+      });
     }
     
+    // Process AI data (reports, news, similar products)
+    if (newsApiData != null && newsApiData['data'] != null) {
+      setState(() {
+        aiReports = List<Map<String, dynamic>>.from(newsApiData['data']['reports'] ?? []);
+        newsData = List<Map<String, dynamic>>.from(newsApiData['data']['news'] ?? []);
+        similarProducts = List<Map<String, dynamic>>.from(newsApiData['data']['repurchase'] ?? []);
+        
+        // Generate suggested items from AI data
+        _generateSuggestedItemsFromAI();
+      });
+    } else {
+      _generateSuggestedItems(query);
+    }
+    
+    setState(() {
+      isLoading = false;
+    });
     _stopLoadingAnimation();
   }
 
@@ -1372,5 +1535,166 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
         ),
       );
     }
+  }
+
+  Widget _buildCreativeLoadingAnimation() {
+    return Container(
+      height: 120,
+      child: Column(
+        children: [
+          // Animated loading text with pulsing effect
+          TweenAnimationBuilder<double>(
+            duration: const Duration(milliseconds: 1500),
+            tween: Tween(begin: 0.5, end: 1.0),
+            builder: (context, value, child) {
+              return Transform.scale(
+                scale: value,
+                child: Opacity(
+                  opacity: value,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.purple.withOpacity(0.3),
+                          Colors.blue.withOpacity(0.3),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.purple.withOpacity(0.5),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Animated brain icon
+                        TweenAnimationBuilder<double>(
+                          duration: const Duration(milliseconds: 2000),
+                          tween: Tween(begin: 0.0, end: 1.0),
+                          builder: (context, value, child) {
+                            return Transform.rotate(
+                              angle: value * 2 * 3.14159,
+                              child: Icon(
+                                Icons.psychology,
+                                color: Colors.purple[300],
+                                size: 16,
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '🧠 AI is thinking...',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+            onEnd: () {
+              // Restart animation
+              setState(() {});
+            },
+          ),
+          const SizedBox(height: 16),
+          // Skeleton loading cards
+          Expanded(
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: 3, // Show 3 skeleton cards
+              itemBuilder: (context, index) {
+                return Container(
+                  width: 100,
+                  margin: const EdgeInsets.only(right: 12),
+                  child: Column(
+                    children: [
+                      // Animated skeleton card
+                      TweenAnimationBuilder<double>(
+                        duration: Duration(milliseconds: 1000 + (index * 200)),
+                        tween: Tween(begin: 0.3, end: 1.0),
+                        builder: (context, value, child) {
+                          return Container(
+                            height: 60,
+                            width: 100,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.1 * value),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: Colors.purple.withOpacity(0.3 * value),
+                                width: 1,
+                              ),
+                            ),
+                            child: Center(
+                              child: Icon(
+                                Icons.shopping_bag_outlined,
+                                color: Colors.purple.withOpacity(0.5 * value),
+                                size: 24,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      // Animated skeleton text
+                      TweenAnimationBuilder<double>(
+                        duration: Duration(milliseconds: 1200 + (index * 200)),
+                        tween: Tween(begin: 0.2, end: 1.0),
+                        builder: (context, value, child) {
+                          return Container(
+                            height: 12,
+                            width: 80,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2 * value),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Animated dots
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(3, (index) {
+              return TweenAnimationBuilder<double>(
+                duration: Duration(milliseconds: 600 + (index * 200)),
+                tween: Tween(begin: 0.0, end: 1.0),
+                builder: (context, value, child) {
+                  return Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    child: Transform.scale(
+                      scale: 0.5 + (0.5 * value),
+                      child: Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: Colors.purple.withOpacity(0.3 + (0.7 * value)),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            }),
+          ),
+        ],
+      ),
+    );
   }
 }
