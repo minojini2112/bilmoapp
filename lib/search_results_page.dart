@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:url_launcher/url_launcher.dart';
 import 'ai_reports_page.dart';
 import 'news_page.dart';
+import 'youtube_shorts_working.dart';
 import 'api_service.dart';
 
 class ChatMessage {
@@ -115,7 +116,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
 
   // Dynamic backend URL detection
   String getBackendUrl() {
-    return 'http://10.0.2.2:5000'; // Default for Android emulator
+    return 'https://bilmobackend-production.up.railway.app'; // Production URL
   }
 
   @override
@@ -1141,10 +1142,12 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
             label: 'Reels',
             color: Colors.red,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Reels - Coming Soon!'),
-                  backgroundColor: Colors.red,
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => YouTubeShortsWorking(
+                    searchQuery: widget.query,
+                  ),
                 ),
               );
             },

@@ -6,24 +6,10 @@ import 'package:flutter/foundation.dart';
 class ApiService {
   // Dynamic backend URL detection
   static List<String> getBackendUrls() {
-    // Check if running on web (Chrome)
-    if (kIsWeb) {
-      return [
-        'http://localhost:5000', // Primary for web
-        'http://127.0.0.1:5000', // Fallback for web
-        'http://192.168.29.197:5000', // Your actual local network IP (Wi-Fi)
-        'http://192.168.1.100:5000', // Your actual local network IP
-      ];
-    } else {
-      // For mobile apps
-      return [
-        'http://127.0.0.1:5000', // ADB port forwarding (should work for USB devices)
-        'http://localhost:5000', // ADB port forwarding alternative
-        'http://10.0.2.2:5000', // Android emulator
-        'http://192.168.1.100:5000', // Update this with your actual IP
-        'http://192.168.29.197:5000', // Your actual local network IP (Wi-Fi)
-      ];
-    }
+    // Use production URL for all platforms
+    return [
+      'https://bilmobackend-production.up.railway.app', // Production URL
+    ];
   }
 
   // Get the best working URL for web
@@ -36,10 +22,10 @@ class ApiService {
     
     for (String url in urls) {
       try {
-        print('🔍 Testing: $url/test');
-        // Try the test endpoint first
+        print('🔍 Testing: $url/status');
+        // Try the status endpoint first
         final response = await http.get(
-          Uri.parse('$url/test'),
+          Uri.parse('$url/status'),
           headers: {
             'Accept': 'application/json',
           },
@@ -259,9 +245,9 @@ class ApiService {
     
     for (String url in urls) {
       try {
-        print('🔍 Testing: $url/test');
+        print('🔍 Testing: $url/status');
         final response = await http.get(
-          Uri.parse('$url/test'),
+          Uri.parse('$url/status'),
           headers: {
             'Accept': 'application/json',
           },
@@ -285,30 +271,30 @@ class ApiService {
   static Future<void> testMobileConnectivity() async {
     print('📱 Testing mobile connectivity...');
     
-    // Test ADB port forwarding first
-    final adbUrls = ['http://127.0.0.1:5000', 'http://localhost:5000'];
+    // Test production URL
+    final adbUrls = ['https://bilmobackend-production.up.railway.app'];
     
     for (String url in adbUrls) {
       try {
-        print('🔍 Testing ADB port forwarding: $url/test');
+        print('🔍 Testing production URL: $url/status');
         final response = await http.get(
-          Uri.parse('$url/test'),
+          Uri.parse('$url/status'),
           headers: {
             'Accept': 'application/json',
           },
         ).timeout(const Duration(seconds: 3));
         
         if (response.statusCode == 200) {
-          print('✅ ADB port forwarding working: $url');
-          print('🎉 Mobile device can reach backend via USB!');
+          print('✅ Production URL working: $url');
+          print('🎉 Mobile device can reach backend!');
           return;
         }
       } catch (e) {
-        print('❌ ADB port forwarding failed for $url: $e');
+        print('❌ Production URL failed for $url: $e');
       }
     }
     
-    print('⚠️ ADB port forwarding not working, trying network IPs...');
+    print('⚠️ Production URL not working, trying network IPs...');
     await testConnectivity();
   }
 

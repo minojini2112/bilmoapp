@@ -566,7 +566,7 @@ class _BestDealsPageState extends State<BestDealsPage> {
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  childAspectRatio: 0.8,
+                  childAspectRatio: 0.75,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
                 ),
@@ -587,6 +587,12 @@ class _BestDealsPageState extends State<BestDealsPage> {
     final price = item['price'] ?? '';
     final discount = item['discount'] ?? '';
     final link = item['link'] ?? '';
+    
+    // Debug print to see what data we're getting
+    print('🖼️ Product: $title');
+    print('🖼️ Image URL: $image');
+    print('💰 Price: $price');
+    print('🏷️ Discount: $discount');
     
     return GestureDetector(
       onTap: () => _launchUrl(link),
@@ -623,19 +629,39 @@ class _BestDealsPageState extends State<BestDealsPage> {
                         child: Image.network(
                           image,
                           fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(accentColor),
+                              ),
+                            );
+                          },
                           errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              Icons.image_not_supported,
-                              color: Colors.white54,
-                              size: 24,
+                            print('❌ Image load error for $image: $error');
+                            return Container(
+                              color: Colors.white.withOpacity(0.1),
+                              child: Icon(
+                                Icons.image_not_supported,
+                                color: Colors.white54,
+                                size: 32,
+                              ),
                             );
                           },
                         ),
                       )
-                    : Icon(
-                        Icons.image_not_supported,
-                        color: Colors.white54,
-                        size: 24,
+                    : Container(
+                        color: Colors.white.withOpacity(0.1),
+                        child: Icon(
+                          Icons.image_not_supported,
+                          color: Colors.white54,
+                          size: 32,
+                        ),
                       ),
               ),
             ),
@@ -647,41 +673,52 @@ class _BestDealsPageState extends State<BestDealsPage> {
                 padding: const EdgeInsets.all(8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                    Flexible(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     if (price.isNotEmpty)
-                      Text(
-                        price,
-                        style: TextStyle(
-                          color: accentColor,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
+                      Flexible(
+                        child: Text(
+                          price,
+                          style: TextStyle(
+                            color: accentColor,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     if (discount.isNotEmpty)
-                      Container(
-                        margin: const EdgeInsets.only(top: 4),
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          discount,
-                          style: const TextStyle(
-                            color: Colors.green,
-                            fontSize: 8,
-                            fontWeight: FontWeight.bold,
+                      Flexible(
+                        child: Container(
+                          margin: const EdgeInsets.only(top: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            discount,
+                            style: const TextStyle(
+                              color: Colors.green,
+                              fontSize: 8,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ),
